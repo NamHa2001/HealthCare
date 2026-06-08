@@ -1,3 +1,7 @@
+using HealthCare.API.Extensions;
+using HealthCare.API.Middleware;
+using HealthCare.Application;
+using HealthCare.Infrastructure;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -8,15 +12,11 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // Serilog
     builder.Host.UseSerilog((ctx, lc) => lc
         .ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.Console());
 
-    // Controllers
     builder.Services.AddControllers();
-
-    // Swagger
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
@@ -39,7 +39,6 @@ try
         });
     });
 
-    // CORS
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowFrontend", policy =>
@@ -53,13 +52,16 @@ try
         });
     });
 
-    // Health Checks
     builder.Services.AddHealthChecks();
 
-    // TODO Sprint 1: AddApplication(), AddInfrastructure()
+    // Clean Architecture layers
+    builder.Services.AddApplication();
+    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddApiAuthentication(builder.Configuration);
 
     var app = builder.Build();
 
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseSerilogRequestLogging();
 
     if (app.Environment.IsDevelopment())
@@ -71,6 +73,7 @@ try
     app.UseCors("AllowFrontend");
     app.UseHttpsRedirection();
     app.UseAuthentication();
+    app.UseMiddleware<CurrentUserMiddleware>();
     app.UseAuthorization();
     app.MapControllers();
     app.MapHealthChecks("/health");
