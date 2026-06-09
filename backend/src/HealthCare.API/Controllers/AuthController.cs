@@ -1,12 +1,12 @@
-﻿using HealthCare.Application.Features.Auth.Commands.ChangePassword;
-using HealthCare.Application.Features.Auth.Commands.ForgotPassword;
-using HealthCare.Application.Features.Auth.Commands.Login;
-using HealthCare.Application.Features.Auth.Commands.Logout;
-using HealthCare.Application.Features.Auth.Commands.RefreshToken;
-using HealthCare.Application.Features.Auth.Commands.Register;
-using HealthCare.Application.Features.Auth.Commands.ResetPassword;
-using HealthCare.Application.Features.Auth.Commands.VerifyEmail;
-using HealthCare.Application.Features.Auth.Queries.GetCurrentUser;
+﻿using HealthCare.Application.Auth.Commands.ChangePassword;
+using HealthCare.Application.Auth.Commands.ForgotPassword;
+using HealthCare.Application.Auth.Commands.Login;
+using HealthCare.Application.Auth.Commands.Logout;
+using HealthCare.Application.Auth.Commands.RefreshToken;
+using HealthCare.Application.Auth.Commands.Register;
+using HealthCare.Application.Auth.Commands.ResetPassword;
+using HealthCare.Application.Auth.Commands.VerifyEmail;
+using HealthCare.Application.Auth.Queries.GetCurrentUser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

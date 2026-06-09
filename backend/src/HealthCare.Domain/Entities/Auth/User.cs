@@ -14,6 +14,8 @@ public class User : AuditableEntity
     public bool IsEmailVerified { get; private set; }
     public bool IsActive { get; private set; } = true;
     public DateTime? LastLoginAt { get; private set; }
+    public int FailedLoginCount { get; private set; }
+    public DateTime? LockedUntil { get; private set; }
 
     private readonly List<UserRole> _userRoles = [];
     public IReadOnlyCollection<UserRole> UserRoles => _userRoles.AsReadOnly();
@@ -35,4 +37,22 @@ public class User : AuditableEntity
     public void RecordLogin() => LastLoginAt = DateTime.UtcNow;
     public void Deactivate() => IsActive = false;
     public void UpdatePassword(string newHash) => PasswordHash = newHash;
+    public bool IsLockedOut() =>
+    LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
+
+    public void RecordFailedLogin()
+    {
+        FailedLoginCount++;
+        if (FailedLoginCount >= 10)
+            LockedUntil = DateTime.UtcNow.AddHours(24);
+        else if (FailedLoginCount >= 5)
+            LockedUntil = DateTime.UtcNow.AddMinutes(15);
+    }
+
+    public void ResetFailedLogin()
+    {
+        FailedLoginCount = 0;
+        LockedUntil = null;
+    }
+
 }

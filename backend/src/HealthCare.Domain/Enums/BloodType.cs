@@ -1,5 +1,8 @@
-﻿namespace HealthCare.Domain.Enums;
+﻿using System.Text.Json.Serialization;
 
+namespace HealthCare.Domain.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum BloodType
 {
     A_Positive = 1,

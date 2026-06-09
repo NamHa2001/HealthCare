@@ -1,6 +1,7 @@
 ﻿using HealthCare.Application.Common.Interfaces;
 using HealthCare.Domain.Common;
 using HealthCare.Domain.Entities.Auth;
+using HealthCare.Domain.Entities.HealthProfile;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthCare.Infrastructure.Persistence;
@@ -16,6 +17,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<EmailVerification> EmailVerifications => Set<EmailVerification>();
+    public DbSet<HealthProfile> HealthProfiles => Set<HealthProfile>();
+    public DbSet<HealthMeasurement> HealthMeasurements => Set<HealthMeasurement>();
+    public DbSet<BloodPressureLog> BloodPressureLogs => Set<BloodPressureLog>();
+    public DbSet<HealthAlert> HealthAlerts => Set<HealthAlert>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
