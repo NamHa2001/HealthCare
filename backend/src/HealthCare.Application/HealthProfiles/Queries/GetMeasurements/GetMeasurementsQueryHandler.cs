@@ -49,6 +49,6 @@ public class GetMeasurementsQueryHandler
             .ProjectTo<HealthMeasurementDto>(_mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
-        return new PagedResult<HealthMeasurementDto>(items, request.Page, request.PageSize, total);
+        return new PagedResult<HealthMeasurementDto>(items, total, request.Page, request.PageSize);
     }
 }

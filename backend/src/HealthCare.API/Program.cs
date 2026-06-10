@@ -16,9 +16,41 @@ try
         .ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.Console());
 
-    builder.Services.AddControllers()
+    builder.Services.AddControllers(options =>
+        {
+            options.Filters.Add<HealthCare.API.Filters.ApiResponseFilter>();
+        })
         .AddJsonOptions(o =>
             o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+
+    // Lỗi model-binding / [ApiController] auto-validation → envelope lỗi chuẩn SRS §8.2.
+    builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var details = context.ModelState
+                .Where(kv => kv.Value!.Errors.Count > 0)
+                .SelectMany(kv => kv.Value!.Errors.Select(e => new HealthCare.API.Models.ApiErrorDetail
+                {
+                    Field = kv.Key,
+                    Message = string.IsNullOrWhiteSpace(e.ErrorMessage) ? "Giá trị không hợp lệ." : e.ErrorMessage
+                }))
+                .ToList();
+
+            var response = new HealthCare.API.Models.ApiErrorResponse
+            {
+                Success = false,
+                Error = new HealthCare.API.Models.ApiError
+                {
+                    Code = "VALIDATION_ERROR",
+                    Message = "Dữ liệu không hợp lệ.",
+                    Details = details
+                }
+            };
+
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(response);
+        };
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {

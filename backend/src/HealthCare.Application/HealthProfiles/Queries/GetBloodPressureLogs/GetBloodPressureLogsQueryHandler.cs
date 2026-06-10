@@ -49,6 +49,6 @@ public class GetBloodPressureLogsQueryHandler
             .ProjectTo<BloodPressureLogDto>(_mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
-        return new PagedResult<BloodPressureLogDto>(items, request.Page, request.PageSize, total);
+        return new PagedResult<BloodPressureLogDto>(items, total, request.Page, request.PageSize);
     }
 }

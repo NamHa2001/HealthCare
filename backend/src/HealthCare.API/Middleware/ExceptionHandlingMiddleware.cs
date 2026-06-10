@@ -1,11 +1,17 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
+using HealthCare.API.Models;
 using HealthCare.Application.Common.Exceptions;
 
 namespace HealthCare.API.Middleware;
 
 public class ExceptionHandlingMiddleware
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
@@ -30,25 +36,36 @@ public class ExceptionHandlingMiddleware
 
     private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
-        var (status, message, errors) = ex switch
+        // Map exception → (HTTP status, error code, message, details) theo SRS §8.2.
+        var (status, code, message, details) = ex switch
         {
-            ValidationException ve => (HttpStatusCode.BadRequest, "Validation failed", ve.Errors),
-            NotFoundException nfe => (HttpStatusCode.NotFound, nfe.Message, (IDictionary<string, string[]>?)null),
-            ForbiddenException fe => (HttpStatusCode.Forbidden, fe.Message, null),
-            ConflictException ce => (HttpStatusCode.Conflict, ce.Message, null),
-            _ => (HttpStatusCode.InternalServerError, "Đã xảy ra lỗi.", null)
+            ValidationException ve => (
+                HttpStatusCode.UnprocessableEntity,
+                "VALIDATION_ERROR",
+                ve.Message,
+                ve.Errors
+                    .SelectMany(kv => kv.Value.Select(m => new ApiErrorDetail { Field = kv.Key, Message = m }))
+                    .ToList()),
+            NotFoundException nfe => (HttpStatusCode.NotFound, "NOT_FOUND", nfe.Message, (List<ApiErrorDetail>?)null),
+            ForbiddenException fe => (HttpStatusCode.Forbidden, "FORBIDDEN", fe.Message, null),
+            ConflictException ce => (HttpStatusCode.Conflict, "CONFLICT", ce.Message, null),
+            _ => (HttpStatusCode.InternalServerError, "INTERNAL_ERROR", "Đã xảy ra lỗi.", null)
         };
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)status;
 
-        var body = JsonSerializer.Serialize(new
+        var response = new ApiErrorResponse
         {
-            status = (int)status,
-            message,
-            errors
-        });
+            Success = false,
+            Error = new ApiError
+            {
+                Code = code,
+                Message = message,
+                Details = details
+            }
+        };
 
-        await context.Response.WriteAsync(body);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response, JsonOptions));
     }
 }
