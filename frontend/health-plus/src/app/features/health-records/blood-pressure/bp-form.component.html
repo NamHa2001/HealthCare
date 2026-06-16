@@ -1,0 +1,75 @@
+<h2 mat-dialog-title>Thêm bản ghi huyết áp</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="pt-2 space-y-3">
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Thời điểm đo</mat-label>
+      <input matInput type="datetime-local" formControlName="measuredAt" />
+      @if (form.get('measuredAt')?.invalid) {
+        <mat-error>Vui lòng nhập thời điểm đo</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="grid grid-cols-2 gap-3">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tâm thu (mmHg)</mat-label>
+        <input matInput type="number" formControlName="systolic" />
+        @if (form.get('systolic')?.hasError('required')) {
+          <mat-error>Bắt buộc</mat-error>
+        } @else if (form.get('systolic')?.hasError('min') || form.get('systolic')?.hasError('max')) {
+          <mat-error>50 – 300 mmHg</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tâm trương (mmHg)</mat-label>
+        <input matInput type="number" formControlName="diastolic" />
+        @if (form.get('diastolic')?.hasError('required')) {
+          <mat-error>Bắt buộc</mat-error>
+        } @else if (form.get('diastolic')?.hasError('min') || form.get('diastolic')?.hasError('max')) {
+          <mat-error>30 – 200 mmHg</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Mạch (bpm)</mat-label>
+        <input matInput type="number" formControlName="pulse" />
+        @if (form.get('pulse')?.hasError('min') || form.get('pulse')?.hasError('max')) {
+          <mat-error>20 – 300 bpm</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tay đo</mat-label>
+        <mat-select formControlName="arm">
+          <mat-option value="left">Tay trái</mat-option>
+          <mat-option value="right">Tay phải</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Tư thế</mat-label>
+      <mat-select formControlName="position">
+        <mat-option value="sitting">Ngồi</mat-option>
+        <mat-option value="lying">Nằm</mat-option>
+        <mat-option value="standing">Đứng</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Ghi chú</mat-label>
+      <textarea matInput formControlName="notes" rows="2"></textarea>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Hủy</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="saving()">
+    @if (saving()) { <mat-spinner diameter="16" class="inline-block mr-1" /> }
+    Lưu
+  </button>
+</mat-dialog-actions>

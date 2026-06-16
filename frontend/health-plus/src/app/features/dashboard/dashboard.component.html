@@ -1,0 +1,239 @@
+<div>
+
+  <!-- Page heading -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#5a5c69]">
+      {{ greeting() }}@if (firstName()) {, {{ firstName() }}}
+    </h1>
+    <p class="text-[#858796] text-sm mt-1">Tổng quan sức khỏe của bạn hôm nay.</p>
+  </div>
+
+  <!-- ══ Row 1: 4 stat cards — cùng cấu trúc cứng ══ -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+
+    <!-- Chỉ số sức khỏe -->
+    <div class="bg-white rounded shadow border-l-4 border-[#4e73df] px-5 py-4 flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-xs font-bold text-[#4e73df] uppercase tracking-wider mb-2">Chỉ số sức khỏe</p>
+        <p class="text-2xl font-bold text-[#5a5c69] leading-none mb-1">
+          @if (healthScore() !== null) { {{ healthScore() }}<span class="text-sm font-normal text-[#858796]">/100</span> } @else { <span class="text-gray-300">—</span> }
+        </p>
+        <p class="text-xs text-[#858796]">
+          @if (healthScore() !== null) { Ước tính từ BMI &amp; huyết áp } @else { Chưa đủ dữ liệu }
+        </p>
+      </div>
+      <div class="w-12 h-12 rounded-full bg-[#4e73df]/10 flex items-center justify-center shrink-0">
+        <mat-icon class="text-[#4e73df]" style="font-size:1.4rem;width:1.4rem;height:1.4rem">favorite</mat-icon>
+      </div>
+    </div>
+
+    <!-- BMI -->
+    <div class="bg-white rounded shadow border-l-4 border-[#1cc88a] px-5 py-4 flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-xs font-bold text-[#1cc88a] uppercase tracking-wider mb-2">BMI gần nhất</p>
+        <p class="text-2xl font-bold text-[#5a5c69] leading-none mb-1">
+          @if (latestBmi() !== null) { {{ latestBmi() | number:'1.1-1' }} } @else { <span class="text-gray-300">—</span> }
+        </p>
+        <p class="text-xs text-[#858796]">
+          @if (latestBmi() !== null) { {{ (latestBmi() | bmiClass).label }} } @else { Chưa có dữ liệu }
+        </p>
+      </div>
+      <div class="w-12 h-12 rounded-full bg-[#1cc88a]/10 flex items-center justify-center shrink-0">
+        <mat-icon class="text-[#1cc88a]" style="font-size:1.4rem;width:1.4rem;height:1.4rem">monitor_weight</mat-icon>
+      </div>
+    </div>
+
+    <!-- Huyết áp -->
+    <div class="bg-white rounded shadow border-l-4 border-[#e74a3b] px-5 py-4 flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-xs font-bold text-[#e74a3b] uppercase tracking-wider mb-2">Huyết áp gần nhất</p>
+        <p class="text-2xl font-bold text-[#5a5c69] leading-none mb-1">
+          @if (latestBp(); as bp) { {{ bp.systolic }}<span class="text-[#858796] font-normal">/</span>{{ bp.diastolic }}
+            <span class="text-xs font-normal text-[#858796]">mmHg</span>
+          } @else { <span class="text-gray-300">—</span> }
+        </p>
+        <p class="text-xs text-[#858796]">
+          @if (latestBp(); as bp) { {{ (bp.systolic | bpClass:bp.diastolic).label }} } @else { Chưa có dữ liệu }
+        </p>
+      </div>
+      <div class="w-12 h-12 rounded-full bg-[#e74a3b]/10 flex items-center justify-center shrink-0">
+        <mat-icon class="text-[#e74a3b]" style="font-size:1.4rem;width:1.4rem;height:1.4rem">favorite_border</mat-icon>
+      </div>
+    </div>
+
+    <!-- Lần khám -->
+    <div class="bg-white rounded shadow border-l-4 border-[#36b9cc] px-5 py-4 flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-xs font-bold text-[#36b9cc] uppercase tracking-wider mb-2">Tổng lần khám</p>
+        <p class="text-2xl font-bold text-[#5a5c69] leading-none mb-1">{{ medical.visitsTotal() }}</p>
+        <p class="text-xs text-[#858796] truncate">
+          @if (medical.visits()[0]; as v) { Gần nhất: {{ v.facilityName }} } @else { Chưa có lần khám }
+        </p>
+      </div>
+      <div class="w-12 h-12 rounded-full bg-[#36b9cc]/10 flex items-center justify-center shrink-0">
+        <mat-icon class="text-[#36b9cc]" style="font-size:1.4rem;width:1.4rem;height:1.4rem">local_hospital</mat-icon>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ Row 2: Cảnh báo — full width ══ -->
+  <div class="mb-4">
+    <div class="sb-card">
+      <div class="sb-card-header">
+        <h2 class="sb-card-title flex items-center gap-1.5">
+          <mat-icon class="text-[#f6c23e]" style="font-size:1rem;width:1rem;height:1rem">warning_amber</mat-icon>
+          Cảnh báo sức khỏe
+        </h2>
+        @if (alerts().length > 0) {
+          <span class="text-xs font-semibold text-[#e74a3b]">{{ alerts().length }} cảnh báo</span>
+        }
+      </div>
+      <div class="p-4">
+        @if (alerts().length === 0) {
+          <div class="flex items-center gap-3 bg-green-50 text-[#1cc88a] rounded-lg px-4 py-3">
+            <mat-icon>check_circle</mat-icon>
+            <span class="text-sm font-medium">Không có cảnh báo — các chỉ số trong ngưỡng bình thường.</span>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            @for (a of alerts(); track a.text) {
+              <div class="flex items-center gap-3 rounded-lg px-4 py-3"
+                [class]="a.level === 'danger' ? 'bg-red-50 text-[#e74a3b]' : 'bg-amber-50 text-amber-700'">
+                <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem">{{ a.icon }}</mat-icon>
+                <span class="text-sm font-semibold">{{ a.text }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Row 3: Measurements (2/3) + Right panel (1/3) ══ -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+    <!-- Chỉ số đo gần đây -->
+    <div class="lg:col-span-2">
+      <div class="sb-card h-full">
+        <div class="sb-card-header">
+          <h2 class="sb-card-title">Chỉ số đo gần đây</h2>
+          <a routerLink="/health-records/measurements" class="text-xs font-semibold text-[#4e73df] hover:underline">
+            Xem tất cả →
+          </a>
+        </div>
+        @if (health.measurementsLoading()) {
+          <div class="flex justify-center py-10"><mat-spinner diameter="32" /></div>
+        } @else if (health.measurements().length === 0) {
+          <div class="flex flex-col items-center justify-center py-14 text-[#858796]">
+            <mat-icon class="text-gray-200 mb-3" style="font-size:3rem;width:3rem;height:3rem">show_chart</mat-icon>
+            <p class="text-sm mb-2">Chưa có dữ liệu đo.</p>
+            <a routerLink="/health-records/measurements" class="text-xs font-semibold text-[#4e73df] hover:underline">
+              + Thêm chỉ số đầu tiên
+            </a>
+          </div>
+        } @else {
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-[#f8f9fc] border-b border-gray-100">
+                <th class="px-5 py-3 text-left text-xs font-bold text-[#858796] uppercase tracking-wide">Thời gian</th>
+                <th class="px-5 py-3 text-left text-xs font-bold text-[#858796] uppercase tracking-wide">Cân (kg)</th>
+                <th class="px-5 py-3 text-left text-xs font-bold text-[#858796] uppercase tracking-wide">BMI</th>
+                <th class="px-5 py-3 text-left text-xs font-bold text-[#858796] uppercase tracking-wide">Nhịp tim</th>
+                <th class="px-5 py-3 text-left text-xs font-bold text-[#858796] uppercase tracking-wide">SpO₂</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of health.measurements(); track m.id) {
+                <tr class="border-b border-gray-50 hover:bg-[#f8f9fc] transition-colors">
+                  <td class="px-5 py-3 text-[#858796] text-xs whitespace-nowrap">{{ m.measuredAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="px-5 py-3 font-medium text-[#5a5c69]">{{ m.weightKg != null ? (m.weightKg | number:'1.1-1') : '—' }}</td>
+                  <td class="px-5 py-3 font-medium text-[#5a5c69]">{{ m.bmi != null ? (m.bmi | number:'1.1-1') : '—' }}</td>
+                  <td class="px-5 py-3 font-medium text-[#5a5c69]">{{ m.heartRateBpm != null ? m.heartRateBpm : '—' }}</td>
+                  <td class="px-5 py-3 font-medium text-[#5a5c69]">{{ m.spo2Percent != null ? m.spo2Percent + '%' : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="flex flex-col gap-4">
+
+      <!-- Truy cập nhanh -->
+      <div class="sb-card">
+        <div class="sb-card-header">
+          <h2 class="sb-card-title">Truy cập nhanh</h2>
+        </div>
+        <div class="p-3 grid grid-cols-2 gap-2">
+          <a routerLink="/health-records/measurements"
+            class="flex flex-col items-center gap-2 py-4 rounded-lg bg-[#1cc88a]/10 hover:bg-[#1cc88a]/20 transition-colors group">
+            <div class="w-10 h-10 rounded-full bg-[#1cc88a]/20 flex items-center justify-center">
+              <mat-icon class="text-[#1cc88a]" style="font-size:1.2rem;width:1.2rem;height:1.2rem">add_chart</mat-icon>
+            </div>
+            <span class="text-xs font-semibold text-[#1cc88a]">Thêm chỉ số</span>
+          </a>
+          <a routerLink="/health-records/blood-pressure"
+            class="flex flex-col items-center gap-2 py-4 rounded-lg bg-[#e74a3b]/10 hover:bg-[#e74a3b]/20 transition-colors group">
+            <div class="w-10 h-10 rounded-full bg-[#e74a3b]/20 flex items-center justify-center">
+              <mat-icon class="text-[#e74a3b]" style="font-size:1.2rem;width:1.2rem;height:1.2rem">favorite_border</mat-icon>
+            </div>
+            <span class="text-xs font-semibold text-[#e74a3b]">Đo huyết áp</span>
+          </a>
+          <a routerLink="/medical-history/visits/new"
+            class="flex flex-col items-center gap-2 py-4 rounded-lg bg-[#4e73df]/10 hover:bg-[#4e73df]/20 transition-colors group">
+            <div class="w-10 h-10 rounded-full bg-[#4e73df]/20 flex items-center justify-center">
+              <mat-icon class="text-[#4e73df]" style="font-size:1.2rem;width:1.2rem;height:1.2rem">note_add</mat-icon>
+            </div>
+            <span class="text-xs font-semibold text-[#4e73df]">Thêm lần khám</span>
+          </a>
+          <a routerLink="/health-records/profile"
+            class="flex flex-col items-center gap-2 py-4 rounded-lg bg-[#36b9cc]/10 hover:bg-[#36b9cc]/20 transition-colors group">
+            <div class="w-10 h-10 rounded-full bg-[#36b9cc]/20 flex items-center justify-center">
+              <mat-icon class="text-[#36b9cc]" style="font-size:1.2rem;width:1.2rem;height:1.2rem">person</mat-icon>
+            </div>
+            <span class="text-xs font-semibold text-[#36b9cc]">Hồ sơ</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Lần khám gần đây -->
+      <div class="sb-card flex-1">
+        <div class="sb-card-header">
+          <h2 class="sb-card-title">Lần khám gần đây</h2>
+          <a routerLink="/medical-history/visits" class="text-xs font-semibold text-[#4e73df] hover:underline">
+            Xem tất cả →
+          </a>
+        </div>
+        <div class="p-3">
+          @if (medical.visits().length === 0) {
+            <div class="flex flex-col items-center py-8 text-[#858796]">
+              <mat-icon class="text-gray-200 mb-2" style="font-size:2.2rem;width:2.2rem;height:2.2rem">event_note</mat-icon>
+              <p class="text-xs">Chưa có lần khám nào.</p>
+            </div>
+          } @else {
+            <div class="space-y-1">
+              @for (v of medical.visits(); track v.id) {
+                <a [routerLink]="['/medical-history/visits', v.id]"
+                  class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#f8f9fc] transition-colors">
+                  <div class="w-8 h-8 rounded-lg bg-[#4e73df]/10 flex items-center justify-center shrink-0">
+                    <mat-icon class="text-[#4e73df]" style="font-size:0.95rem;width:0.95rem;height:0.95rem">local_hospital</mat-icon>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-[#5a5c69] truncate">{{ v.facilityName }}</p>
+                    <p class="text-xs text-[#858796] truncate">{{ v.diagnosis }}</p>
+                  </div>
+                  <span class="text-xs text-[#858796] shrink-0">{{ v.visitDate | date:'dd/MM' }}</span>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

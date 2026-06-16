@@ -1,0 +1,77 @@
+<div>
+
+  <!-- Page header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Hồ sơ sức khỏe</h1>
+      <p class="text-sm text-[#858796] mt-1">Thông tin y tế cá nhân</p>
+    </div>
+    <a mat-raised-button color="primary" routerLink="edit">
+      <mat-icon>edit</mat-icon> Chỉnh sửa
+    </a>
+  </div>
+
+  @if (store.profileLoading()) {
+    <div class="flex justify-center py-12">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (!store.profile()) {
+    <div class="sb-card p-12 text-center text-[#858796]">
+      <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">assignment_ind</mat-icon>
+      <p class="mb-4">Bạn chưa có hồ sơ sức khỏe.</p>
+      <a mat-raised-button color="primary" routerLink="edit">Tạo hồ sơ</a>
+    </div>
+  } @else {
+    @let p = store.profile()!;
+    <div class="sb-card">
+      <!-- Card header bar -->
+      <div class="bg-[#4e73df] px-6 py-4 flex items-center gap-3">
+        <mat-icon class="text-white">person</mat-icon>
+        <h2 class="text-white font-bold text-base">Thông tin cá nhân</h2>
+      </div>
+
+      <div class="divide-y divide-gray-100">
+
+        <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <p class="text-xs font-bold text-[#858796] uppercase tracking-wider mb-1">Nhóm máu</p>
+            <p class="text-[#5a5c69] font-semibold text-lg">{{ p.bloodType ? bloodTypeLabels[p.bloodType] : '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-[#858796] uppercase tracking-wider mb-1">Bác sĩ chính</p>
+            <p class="text-[#5a5c69] font-medium">{{ p.primaryDoctor || '—' }}</p>
+          </div>
+        </div>
+
+        <div class="px-6 py-5">
+          <p class="text-xs font-bold text-[#858796] uppercase tracking-wider mb-1">Dị ứng</p>
+          <p class="text-[#5a5c69]">{{ p.allergies || '—' }}</p>
+        </div>
+
+        <div class="px-6 py-5">
+          <p class="text-xs font-bold text-[#858796] uppercase tracking-wider mb-1">Bệnh mãn tính</p>
+          <p class="text-[#5a5c69]">{{ p.chronicConditions || '—' }}</p>
+        </div>
+
+        <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <p class="text-xs font-bold text-[#858796] uppercase tracking-wider mb-1">Liên hệ khẩn — Tên</p>
+            <p class="text-[#5a5c69] font-medium">{{ p.emergencyContactName || '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-[#858796] uppercase tracking-wider mb-1">Liên hệ khẩn — SĐT</p>
+            <p class="text-[#5a5c69] font-medium">{{ p.emergencyContactPhone || '—' }}</p>
+          </div>
+        </div>
+
+        @if (p.notes) {
+          <div class="px-6 py-5">
+            <p class="text-xs font-bold text-[#858796] uppercase tracking-wider mb-1">Ghi chú</p>
+            <p class="text-[#5a5c69] whitespace-pre-wrap">{{ p.notes }}</p>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+</div>

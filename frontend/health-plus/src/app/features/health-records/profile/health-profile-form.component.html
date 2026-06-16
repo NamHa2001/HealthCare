@@ -1,0 +1,66 @@
+<div class="p-6">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Chỉnh sửa hồ sơ sức khỏe</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Nhóm máu</mat-label>
+      <mat-select formControlName="bloodType">
+        <mat-option [value]="null">— Chưa xác định —</mat-option>
+        @for (opt of bloodTypeOptions; track opt[0]) {
+          <mat-option [value]="opt[0]">{{ opt[1] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Dị ứng</mat-label>
+      <textarea matInput formControlName="allergies" rows="2"
+        placeholder="Ví dụ: Penicillin, đậu phộng..."></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Bệnh mãn tính</mat-label>
+      <textarea matInput formControlName="chronicConditions" rows="2"
+        placeholder="Ví dụ: Tiểu đường type 2, cao huyết áp..."></textarea>
+    </mat-form-field>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tên người liên hệ khẩn</mat-label>
+        <input matInput formControlName="emergencyContactName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SĐT người liên hệ khẩn</mat-label>
+        <input matInput formControlName="emergencyContactPhone" inputmode="tel" />
+        @if (form.get('emergencyContactPhone')?.hasError('vietnamPhone')) {
+          <mat-error>Số điện thoại Việt Nam không hợp lệ</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Số bảo hiểm y tế</mat-label>
+      <input matInput formControlName="insuranceNumberPlain" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Bác sĩ chính</mat-label>
+      <input matInput formControlName="primaryDoctor" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Ghi chú</mat-label>
+      <textarea matInput formControlName="notes" rows="3"></textarea>
+    </mat-form-field>
+
+    <div class="flex gap-3 pt-2">
+      <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+        @if (saving()) { <mat-spinner diameter="18" class="inline-block mr-1" /> }
+        Lưu
+      </button>
+      <button mat-button type="button" (click)="cancel()">Hủy</button>
+    </div>
+  </form>
+</div>

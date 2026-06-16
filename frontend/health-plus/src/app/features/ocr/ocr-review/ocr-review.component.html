@@ -1,0 +1,136 @@
+<div>
+
+  <!-- Header -->
+  <div class="mb-6 flex items-center gap-4">
+    <button mat-icon-button routerLink="/ocr/upload">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Kết quả nhận diện</h1>
+      <p class="text-sm text-[#858796] mt-0.5">Xem lại và xác nhận thông tin thuốc được trích xuất</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-20 text-[#858796]">
+      <mat-spinner diameter="56" class="mb-4" />
+      <p class="text-sm">Đang tải kết quả OCR...</p>
+    </div>
+  } @else if (errorMsg()) {
+    <div class="sb-card p-8 text-center">
+      <mat-icon class="text-[#e74a3b] mb-3" style="font-size:3rem;width:3rem;height:3rem">error_outline</mat-icon>
+      <p class="text-[#e74a3b] font-semibold">{{ errorMsg() }}</p>
+      <button mat-raised-button color="primary" class="mt-4" routerLink="/ocr/upload">
+        Thử lại
+      </button>
+    </div>
+  } @else if (result()) {
+
+    <!-- OCR Status banner -->
+    @if (result()!.status === 'Failed') {
+      <div class="flex items-center gap-2 p-3 rounded bg-red-50 text-[#e74a3b] text-sm mb-4">
+        <mat-icon>error</mat-icon>
+        OCR xử lý thất bại. Bạn vẫn có thể thêm thuốc thủ công.
+      </div>
+    }
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+      <!-- Left: Raw text -->
+      <div class="sb-card">
+        <div class="sb-card-header">
+          <h2 class="sb-card-title">Văn bản nhận diện</h2>
+          @if (result()!.confidenceScore !== null && result()!.confidenceScore !== undefined) {
+            <span [class]="'text-xs font-semibold ' + confidenceClass(result()!.confidenceScore! / 100)">
+              Độ chính xác: {{ result()!.confidenceScore | number:'1.0-1' }}%
+            </span>
+          }
+        </div>
+        <div class="p-4">
+          @if (result()!.rawText) {
+            <pre class="text-xs text-[#5a5c69] whitespace-pre-wrap font-mono bg-[#f8f9fc] p-3 rounded-lg max-h-80 overflow-y-auto leading-relaxed">{{ result()!.rawText }}</pre>
+          } @else {
+            <p class="text-[#858796] text-sm text-center py-8">Không có văn bản được nhận diện.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Right: Extracted drugs -->
+      <div class="sb-card">
+        <div class="sb-card-header">
+          <h2 class="sb-card-title">Thuốc được trích xuất</h2>
+          @if (result()!.prescription?.drugs?.length) {
+            <button mat-raised-button color="primary" class="!text-xs !h-7 !px-3" (click)="addAll()">
+              <mat-icon class="!text-sm !w-4 !h-4 mr-1">add</mat-icon>
+              Thêm thuốc đầu tiên
+            </button>
+          }
+        </div>
+
+        @if (!result()!.prescription?.drugs?.length) {
+          <div class="text-center py-10 text-[#858796]">
+            <mat-icon class="block mb-2 text-gray-200" style="font-size:2.5rem;width:2.5rem;height:2.5rem">search_off</mat-icon>
+            <p class="text-sm">Không trích xuất được thông tin thuốc.</p>
+            <button mat-stroked-button class="mt-4" routerLink="/medications/new">
+              <mat-icon>add</mat-icon> Thêm thủ công
+            </button>
+          </div>
+        } @else {
+          <div class="divide-y divide-gray-100">
+            @for (drug of result()!.prescription!.drugs; track drug.drugName; let i = $index) {
+              <div [class]="'p-4 border border-transparent rounded-lg mx-3 my-2 ' + confidenceBg(drug.confidenceScore)">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                      <span class="font-bold text-[#5a5c69]">{{ drug.drugName }}</span>
+                      @if (drug.strength) {
+                        <span class="text-xs bg-white px-2 py-0.5 rounded border border-gray-200 text-[#5a5c69]">
+                          {{ drug.strength }}
+                        </span>
+                      }
+                      @if (drug.dosageForm) {
+                        <span class="text-xs text-[#858796]">{{ drug.dosageForm }}</span>
+                      }
+                      <!-- Confidence badge -->
+                      <span [class]="'text-xs font-semibold ' + confidenceClass(drug.confidenceScore)"
+                        [matTooltip]="drug.confidenceScore < 0.75 ? 'Độ tin cậy thấp — vui lòng kiểm tra lại' : ''">
+                        {{ (drug.confidenceScore * 100) | number:'1.0-0' }}%
+                        @if (drug.confidenceScore < 0.75) {
+                          <mat-icon class="!text-xs !w-3.5 !h-3.5 ml-0.5 align-middle">warning</mat-icon>
+                        }
+                      </span>
+                    </div>
+
+                    <div class="space-y-0.5 text-xs text-[#858796]">
+                      @if (drug.dosage) { <div><span class="font-medium">Liều:</span> {{ drug.dosage }}</div> }
+                      @if (drug.frequency) { <div><span class="font-medium">Tần suất:</span> {{ drug.frequency }}</div> }
+                      @if (drug.duration) { <div><span class="font-medium">Thời gian:</span> {{ drug.duration }}</div> }
+                      @if (drug.instructions) { <div><span class="font-medium">Hướng dẫn:</span> {{ drug.instructions }}</div> }
+                    </div>
+                  </div>
+
+                  <!-- Add button -->
+                  <button mat-icon-button color="primary" matTooltip="Thêm thuốc này"
+                    (click)="addMedication(drug)">
+                    <mat-icon>add_circle_outline</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Bottom action -->
+    <div class="mt-4 flex gap-3">
+      <button mat-stroked-button routerLink="/medications">
+        <mat-icon>medication</mat-icon> Về danh sách thuốc
+      </button>
+      <button mat-stroked-button routerLink="/ocr/upload">
+        <mat-icon>document_scanner</mat-icon> Quét đơn khác
+      </button>
+    </div>
+
+  }
+</div>

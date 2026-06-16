@@ -2,6 +2,8 @@
 using HealthCare.Domain.Common;
 using HealthCare.Domain.Entities.Auth;
 using HealthCare.Domain.Entities.HealthProfile;
+using HealthCare.Domain.Entities.MedicalHistory;
+using HealthCare.Domain.Entities.Medications;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthCare.Infrastructure.Persistence;
@@ -21,6 +23,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<HealthMeasurement> HealthMeasurements => Set<HealthMeasurement>();
     public DbSet<BloodPressureLog> BloodPressureLogs => Set<BloodPressureLog>();
     public DbSet<HealthAlert> HealthAlerts => Set<HealthAlert>();
+    public DbSet<MedicalVisit> MedicalVisits => Set<MedicalVisit>();
+    public DbSet<MedicalDocument> MedicalDocuments => Set<MedicalDocument>();
+    public DbSet<DrugCatalog> DrugCatalog => Set<DrugCatalog>();
+    public DbSet<Medication> Medications => Set<Medication>();
+    public DbSet<MedicationSchedule> MedicationSchedules => Set<MedicationSchedule>();
+    public DbSet<MedicationLog> MedicationLogs => Set<MedicationLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

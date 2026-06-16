@@ -55,6 +55,7 @@ function handle401(
       }),
       catchError((err) => {
         isRefreshing = false;
+        authService.clearSession();
         return throwError(() => err);
       }),
     );

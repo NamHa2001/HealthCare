@@ -1,0 +1,38 @@
+<div class="flex items-center justify-between gap-4 p-4 border-b border-gray-200">
+  <h2 class="font-medium text-gray-900 truncate flex-1" mat-dialog-title>{{ doc.fileName }}</h2>
+  <div class="flex items-center gap-1">
+    <button mat-icon-button matTooltip="Tải xuống" (click)="download()" [disabled]="!url()">
+      <mat-icon>download</mat-icon>
+    </button>
+    <button mat-icon-button (click)="dialogRef.close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
+
+<mat-dialog-content class="!p-0">
+  @if (loading()) {
+    <div class="flex justify-center items-center py-20">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (error()) {
+    <div class="text-center py-20 text-gray-500">
+      <mat-icon class="text-5xl mb-3 block">error_outline</mat-icon>
+      <p>Không thể tải tài liệu. Vui lòng thử lại.</p>
+    </div>
+  } @else if (isImage) {
+    <div class="flex justify-center bg-gray-50 p-4">
+      <img [src]="url()" [alt]="doc.fileName" class="max-w-full max-h-[70vh] object-contain" />
+    </div>
+  } @else if (isPdf) {
+    <iframe [src]="safeUrl()" class="w-full h-[70vh] border-0" title="PDF preview"></iframe>
+  } @else {
+    <div class="text-center py-20 text-gray-500">
+      <mat-icon class="text-5xl mb-3 block">insert_drive_file</mat-icon>
+      <p>Không hỗ trợ xem trước định dạng này.</p>
+      <button mat-raised-button color="primary" class="mt-4" (click)="download()">
+        <mat-icon>download</mat-icon> Tải xuống
+      </button>
+    </div>
+  }
+</mat-dialog-content>

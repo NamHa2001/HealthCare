@@ -1,0 +1,78 @@
+<h2 mat-dialog-title>Thêm chỉ số sức khỏe</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="pt-2 space-y-3">
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Thời điểm đo</mat-label>
+      <input matInput type="datetime-local" formControlName="measuredAt" />
+      @if (form.get('measuredAt')?.invalid) {
+        <mat-error>Vui lòng nhập thời điểm đo</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="grid grid-cols-2 gap-3">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Cân nặng (kg)</mat-label>
+        <input matInput type="number" formControlName="weightKg" step="0.1" />
+        @if (form.get('weightKg')?.hasError('min') || form.get('weightKg')?.hasError('max')) {
+          <mat-error>1 – 500 kg</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Chiều cao (cm)</mat-label>
+        <input matInput type="number" formControlName="heightCm" step="0.5" />
+        @if (form.get('heightCm')?.hasError('min') || form.get('heightCm')?.hasError('max')) {
+          <mat-error>30 – 300 cm</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nhịp tim (bpm)</mat-label>
+        <input matInput type="number" formControlName="heartRateBpm" />
+        @if (form.get('heartRateBpm')?.hasError('min') || form.get('heartRateBpm')?.hasError('max')) {
+          <mat-error>20 – 300 bpm</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SpO₂ (%)</mat-label>
+        <input matInput type="number" formControlName="spo2Percent" step="0.1" />
+        @if (form.get('spo2Percent')?.hasError('min') || form.get('spo2Percent')?.hasError('max')) {
+          <mat-error>50 – 100%</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Đường huyết (mmol/L)</mat-label>
+        <input matInput type="number" formControlName="bloodGlucose" step="0.1" />
+        @if (form.get('bloodGlucose')?.hasError('min') || form.get('bloodGlucose')?.hasError('max')) {
+          <mat-error>0 – 50 mmol/L</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nhiệt độ (°C)</mat-label>
+        <input matInput type="number" formControlName="bodyTemperature" step="0.1" />
+        @if (form.get('bodyTemperature')?.hasError('min') || form.get('bodyTemperature')?.hasError('max')) {
+          <mat-error>30 – 45 °C</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Ghi chú</mat-label>
+      <textarea matInput formControlName="notes" rows="2"></textarea>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Hủy</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="saving()">
+    @if (saving()) { <mat-spinner diameter="16" class="inline-block mr-1" /> }
+    Lưu
+  </button>
+</mat-dialog-actions>

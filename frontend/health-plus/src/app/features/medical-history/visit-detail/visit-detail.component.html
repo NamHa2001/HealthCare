@@ -1,0 +1,136 @@
+<div class="p-6">
+  <div class="flex items-center gap-3 mb-6">
+    <button mat-icon-button routerLink="/medical-history/visits">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="text-2xl font-bold text-gray-900 flex-1">Chi tiết lần khám</h1>
+    @if (store.currentVisit(); as v) {
+      <button mat-stroked-button [routerLink]="['/medical-history/visits', v.id, 'edit']">
+        <mat-icon>edit</mat-icon> Sửa
+      </button>
+      <button mat-stroked-button color="warn" (click)="deleteVisit()">
+        <mat-icon>delete_outline</mat-icon> Xóa
+      </button>
+    }
+  </div>
+
+  @if (store.currentVisitLoading()) {
+    <div class="flex justify-center py-12">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (store.currentVisit(); as v) {
+    <!-- Thông tin lần khám -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+      <div class="flex items-center gap-2 mb-4">
+        <mat-icon class="text-blue-600">event</mat-icon>
+        <span class="text-lg font-semibold text-gray-900">{{ v.visitDate | date:'dd/MM/yyyy' }}</span>
+      </div>
+
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+        <div class="sm:col-span-2">
+          <dt class="text-gray-400 uppercase text-xs tracking-wide">Cơ sở y tế</dt>
+          <dd class="text-gray-900 font-medium">{{ v.facilityName }}</dd>
+        </div>
+        @if (v.doctorName) {
+          <div>
+            <dt class="text-gray-400 uppercase text-xs tracking-wide">Bác sĩ</dt>
+            <dd class="text-gray-900">{{ v.doctorName }}</dd>
+          </div>
+        }
+        @if (v.icd10Code) {
+          <div>
+            <dt class="text-gray-400 uppercase text-xs tracking-wide">Mã ICD-10</dt>
+            <dd class="text-gray-900">{{ v.icd10Code }}</dd>
+          </div>
+        }
+        <div class="sm:col-span-2">
+          <dt class="text-gray-400 uppercase text-xs tracking-wide">Lý do khám</dt>
+          <dd class="text-gray-900 whitespace-pre-line">{{ v.chiefComplaint }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="text-gray-400 uppercase text-xs tracking-wide">Chẩn đoán</dt>
+          <dd class="text-gray-900 whitespace-pre-line">{{ v.diagnosis }}</dd>
+        </div>
+        @if (v.treatment) {
+          <div class="sm:col-span-2">
+            <dt class="text-gray-400 uppercase text-xs tracking-wide">Điều trị</dt>
+            <dd class="text-gray-900 whitespace-pre-line">{{ v.treatment }}</dd>
+          </div>
+        }
+        @if (v.followUpDate) {
+          <div>
+            <dt class="text-gray-400 uppercase text-xs tracking-wide">Tái khám</dt>
+            <dd class="text-gray-900">{{ v.followUpDate | date:'dd/MM/yyyy' }}</dd>
+          </div>
+        }
+        @if (v.cost != null) {
+          <div>
+            <dt class="text-gray-400 uppercase text-xs tracking-wide">Chi phí</dt>
+            <dd class="text-gray-900">{{ v.cost | number:'1.0-0' }} đ</dd>
+          </div>
+        }
+        @if (v.notes) {
+          <div class="sm:col-span-2">
+            <dt class="text-gray-400 uppercase text-xs tracking-wide">Ghi chú</dt>
+            <dd class="text-gray-900 whitespace-pre-line">{{ v.notes }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
+
+    <!-- Tài liệu đính kèm -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-gray-900">
+          Tài liệu ({{ v.documents.length }})
+        </h2>
+        <input #fileInput type="file" class="hidden"
+          accept="application/pdf,image/jpeg,image/png,image/heic"
+          (change)="onFileSelected($event)" />
+        <button mat-raised-button color="primary"
+          [disabled]="uploading()" (click)="fileInput.click()">
+          @if (uploading()) {
+            <span class="inline-flex items-center gap-1">
+              <mat-spinner diameter="20" /> Đang tải...
+            </span>
+          } @else {
+            <span class="inline-flex items-center gap-1">
+              <mat-icon>upload_file</mat-icon> Tải tài liệu
+            </span>
+          }
+        </button>
+      </div>
+
+      @if (v.documents.length === 0) {
+        <p class="text-sm text-gray-400 text-center py-6">Chưa có tài liệu nào.</p>
+      } @else {
+        <div class="divide-y divide-gray-100">
+          @for (doc of v.documents; track doc.id) {
+            <div class="flex items-center gap-3 py-3">
+              <mat-icon class="text-gray-400">
+                {{ doc.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image' }}
+              </mat-icon>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">{{ doc.fileName }}</p>
+                <p class="text-xs text-gray-400">
+                  {{ docTypeLabel(doc.documentType) }} · {{ formatBytes(doc.fileSizeBytes) }}
+                </p>
+              </div>
+              <button mat-icon-button matTooltip="Xem" (click)="viewDocument(doc)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" matTooltip="Xóa" (click)="deleteDocument(doc)">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="text-center py-12 text-gray-500">
+      <mat-icon class="text-5xl mb-3 block">search_off</mat-icon>
+      <p>Không tìm thấy lần khám này.</p>
+    </div>
+  }
+</div>

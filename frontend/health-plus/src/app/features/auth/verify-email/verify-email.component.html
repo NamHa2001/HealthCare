@@ -1,0 +1,93 @@
+<div class="w-full max-w-md">
+  <!-- Logo -->
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-blue-600">Health+</h1>
+    <p class="mt-2 text-gray-500 text-sm">Quản lý sức khỏe cá nhân &amp; gia đình</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+
+    <!-- Trạng thái: đang xác nhận tự động từ query param -->
+    @if (isLoading() && !form.get('token')?.dirty) {
+      <div class="text-center py-6">
+        <mat-spinner diameter="48" class="mx-auto mb-4" />
+        <p class="text-gray-600">Đang xác nhận email...</p>
+      </div>
+    }
+
+    <!-- Trạng thái: thành công -->
+    @if (isSuccess()) {
+      <div class="text-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <mat-icon class="text-green-600 text-3xl">check_circle</mat-icon>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">Email đã được xác nhận!</h2>
+        <p class="text-gray-500 text-sm mb-8">
+          Tài khoản của bạn đã được kích hoạt. Bạn có thể đăng nhập ngay bây giờ.
+        </p>
+        <a routerLink="/auth/login" mat-flat-button color="primary" class="w-full h-12 text-base">
+          Đăng nhập
+        </a>
+      </div>
+    }
+
+    <!-- Trạng thái: form nhập token thủ công -->
+    @if (!isSuccess() && !(isLoading() && !form.get('token')?.dirty)) {
+      <div>
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+            <mat-icon class="text-blue-600">email</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900">Xác nhận email</h2>
+            <p class="text-gray-500 text-sm">Nhập token từ email xác nhận</p>
+          </div>
+        </div>
+
+        <p class="text-gray-600 text-sm mb-6">
+          Kiểm tra hộp thư của bạn và sao chép token xác nhận (32 ký tự) từ email của Health+.
+        </p>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="flex flex-col gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Token xác nhận</mat-label>
+            <input
+              matInput
+              formControlName="token"
+              placeholder="a1b2c3d4e5f6789012345678901234ab"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <mat-icon matSuffix class="text-gray-400">key</mat-icon>
+            @if (form.get('token')?.touched) {
+              @if (form.get('token')?.hasError('required')) {
+                <mat-error>Vui lòng nhập token xác nhận</mat-error>
+              } @else if (form.get('token')?.hasError('minlength') || form.get('token')?.hasError('maxlength') || form.get('token')?.hasError('pattern')) {
+                <mat-error>Token không hợp lệ (phải là 32 ký tự hex)</mat-error>
+              }
+            }
+          </mat-form-field>
+
+          <button
+            mat-flat-button color="primary"
+            type="submit"
+            class="w-full h-12 text-base"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <mat-spinner diameter="20" class="inline-block mr-2" />
+              Đang xác nhận...
+            } @else {
+              Xác nhận email
+            }
+          </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-500">
+          <a routerLink="/auth/login" class="text-blue-600 hover:underline">Quay lại đăng nhập</a>
+        </p>
+      </div>
+    }
+
+  </div>
+</div>

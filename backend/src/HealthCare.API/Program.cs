@@ -2,6 +2,9 @@ using HealthCare.API.Extensions;
 using HealthCare.API.Middleware;
 using HealthCare.Application;
 using HealthCare.Infrastructure;
+using HealthCare.Infrastructure.Persistence;
+using HealthCare.Infrastructure.Persistence.Seeds;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -94,6 +97,14 @@ try
     builder.Services.AddApiAuthentication(builder.Configuration);
 
     var app = builder.Build();
+
+    // Seed drug catalog on startup (idempotent — skips if already seeded)
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await db.Database.MigrateAsync();
+        await DrugCatalogSeeder.SeedAsync(db);
+    }
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseSerilogRequestLogging();

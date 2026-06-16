@@ -1,0 +1,101 @@
+<div class="max-w-xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-6 flex items-center gap-4">
+    <button mat-icon-button routerLink="/medications">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">{{ id() ? 'Chỉnh sửa thuốc' : 'Thêm thuốc mới' }}</h1>
+      <p class="text-sm text-[#858796] mt-0.5">{{ id() ? 'Cập nhật thông tin thuốc' : 'Nhập thông tin thuốc thủ công hoặc từ OCR' }}</p>
+    </div>
+  </div>
+
+  <div class="sb-card">
+    <div class="sb-card-header">
+      <h2 class="sb-card-title">Thông tin thuốc</h2>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="p-5 flex flex-col gap-4">
+
+      <!-- Error -->
+      @if (errorMsg()) {
+        <div class="flex items-center gap-2 p-3 rounded bg-red-50 text-[#e74a3b] text-sm">
+          <mat-icon class="text-sm">error_outline</mat-icon>
+          {{ errorMsg() }}
+        </div>
+      }
+
+      <!-- Drug name -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tên thuốc *</mat-label>
+        <input matInput formControlName="drugName" placeholder="VD: Paracetamol, Amoxicillin..." />
+        @if (form.controls.drugName.hasError('required')) {
+          <mat-error>Vui lòng nhập tên thuốc</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Strength & dosage form -->
+      <div class="flex gap-3">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Hàm lượng</mat-label>
+          <input matInput formControlName="strength" placeholder="VD: 500mg, 250mg/5ml..." />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Dạng bào chế</mat-label>
+          <mat-select formControlName="dosageForm">
+            <mat-option value="">— Không chọn —</mat-option>
+            <mat-option value="Viên nén">Viên nén</mat-option>
+            <mat-option value="Viên nang">Viên nang</mat-option>
+            <mat-option value="Siro">Siro</mat-option>
+            <mat-option value="Bột pha">Bột pha</mat-option>
+            <mat-option value="Thuốc tiêm">Thuốc tiêm</mat-option>
+            <mat-option value="Thuốc mỡ">Thuốc mỡ</mat-option>
+            <mat-option value="Khác">Khác</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Instructions -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Hướng dẫn sử dụng</mat-label>
+        <textarea matInput formControlName="instructions" rows="2"
+          placeholder="VD: Uống sau ăn, 1 viên x 3 lần/ngày..."></textarea>
+      </mat-form-field>
+
+      <!-- Dates -->
+      <div class="flex gap-3">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Ngày bắt đầu *</mat-label>
+          <input matInput formControlName="startDate" type="date" />
+          @if (form.controls.startDate.hasError('required')) {
+            <mat-error>Vui lòng chọn ngày bắt đầu</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="flex-1" [class.opacity-40]="form.controls.isOngoing.value">
+          <mat-label>Ngày kết thúc</mat-label>
+          <input matInput formControlName="endDate" type="date" />
+        </mat-form-field>
+      </div>
+
+      <!-- Ongoing -->
+      <mat-checkbox formControlName="isOngoing" color="primary">
+        Dùng lâu dài (không có ngày kết thúc)
+      </mat-checkbox>
+
+      <!-- Actions -->
+      <div class="flex gap-3 pt-2">
+        <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+          @if (saving()) {
+            <mat-spinner diameter="18" class="inline-block mr-2" />
+          }
+          {{ id() ? 'Lưu thay đổi' : 'Thêm thuốc' }}
+        </button>
+        <button mat-stroked-button type="button" routerLink="/medications">Hủy</button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

@@ -1,0 +1,119 @@
+<div>
+
+  <!-- Page header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Lịch sử khám bệnh</h1>
+      <p class="text-sm text-[#858796] mt-1">Theo dõi các lần khám và tài liệu y tế</p>
+    </div>
+    <button mat-raised-button color="primary" routerLink="/medical-history/visits/new">
+      <mat-icon>add</mat-icon> Thêm lần khám
+    </button>
+  </div>
+
+  <!-- Filter card -->
+  <div class="sb-card mb-4">
+    <div class="sb-card-header">
+      <h2 class="sb-card-title">Bộ lọc</h2>
+    </div>
+    <div class="p-4 flex flex-wrap items-center gap-3">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-36">
+        <mat-label>Năm</mat-label>
+        <mat-select [value]="store.filterYear()" (valueChange)="onYearChange($event)">
+          <mat-option [value]="null">Tất cả</mat-option>
+          @for (y of years(); track y) {
+            <mat-option [value]="y">{{ y }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-36">
+        <mat-label>Tháng</mat-label>
+        <mat-select [value]="store.filterMonth()" (valueChange)="onMonthChange($event)">
+          <mat-option [value]="null">Tất cả</mat-option>
+          @for (m of months(); track m) {
+            <mat-option [value]="m">Tháng {{ m }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (store.filterYear() !== null || store.filterMonth() !== null) {
+        <button mat-stroked-button (click)="clearFilter()">
+          <mat-icon>clear</mat-icon> Xóa lọc
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Visit list card -->
+  <div class="sb-card">
+    <div class="sb-card-header">
+      <h2 class="sb-card-title">Danh sách lần khám</h2>
+      <span class="text-xs text-[#858796]">{{ store.visitsTotal() }} lần khám</span>
+    </div>
+
+    @if (store.visitsLoading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+    } @else if (store.visits().length === 0) {
+      <div class="text-center py-12 text-[#858796]">
+        <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">medical_services</mat-icon>
+        <p>Chưa có lần khám nào được ghi nhận.</p>
+      </div>
+    } @else {
+      <div>
+        @for (v of store.visits(); track v.id; let last = $last) {
+          <div
+            class="flex items-start px-5 py-4 hover:bg-[#f8f9fc] transition-colors cursor-pointer"
+            [class.border-b]="!last" [class.border-gray-100]="!last"
+            (click)="openDetail(v)"
+          >
+            <!-- Date column -->
+            <div class="w-14 shrink-0 text-center mr-4">
+              <div class="text-xl font-bold text-[#4e73df] leading-none">{{ v.visitDate | date:'dd' }}</div>
+              <div class="text-xs font-semibold text-[#858796] uppercase">{{ v.visitDate | date:'MMM' }}</div>
+              <div class="text-xs text-[#858796]">{{ v.visitDate | date:'yyyy' }}</div>
+            </div>
+
+            <!-- Vertical divider -->
+            <div class="w-0.5 bg-[#4e73df]/20 self-stretch rounded-full mr-4 shrink-0"></div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-0.5">
+                <h3 class="font-bold text-[#5a5c69] truncate">{{ v.facilityName }}</h3>
+                @if (v.documentCount > 0) {
+                  <span class="badge-info">
+                    <mat-icon class="!text-xs !w-4 !h-4 mr-0.5">attach_file</mat-icon>{{ v.documentCount }}
+                  </span>
+                }
+              </div>
+              <p class="text-sm text-[#858796] truncate">{{ v.diagnosis }}</p>
+              @if (v.doctorName) {
+                <p class="text-xs text-[#858796] mt-0.5">BS. {{ v.doctorName }}</p>
+              }
+            </div>
+
+            <!-- Delete button -->
+            <button mat-icon-button color="warn" matTooltip="Xóa"
+              class="shrink-0 ml-2" (click)="delete(v, $event)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (store.visitsTotal() > store.visitsPageSize()) {
+        <div class="flex items-center justify-center gap-2 p-4 border-t border-gray-100">
+          @for (p of [].constructor(Math.ceil(store.visitsTotal() / store.visitsPageSize())); track $index) {
+            <button mat-icon-button
+              [color]="store.visitsPage() === $index + 1 ? 'primary' : ''"
+              (click)="loadPage($index + 1)">
+              {{ $index + 1 }}
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+
+</div>

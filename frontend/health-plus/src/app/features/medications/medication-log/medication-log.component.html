@@ -1,0 +1,118 @@
+<div>
+
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Nhật ký uống thuốc</h1>
+      <p class="text-sm text-[#858796] mt-1">Cập nhật tình trạng uống thuốc trong ngày</p>
+    </div>
+    <button mat-stroked-button routerLink="/medications">
+      <mat-icon>arrow_back</mat-icon> Về danh sách
+    </button>
+  </div>
+
+  <!-- Date picker -->
+  <div class="sb-card mb-4">
+    <div class="p-4 flex items-center gap-3">
+      <mat-icon class="text-[#4e73df]">calendar_today</mat-icon>
+      <label class="text-sm font-semibold text-[#5a5c69]">Xem ngày:</label>
+      <input
+        type="date"
+        [value]="store.logsDate()"
+        (change)="onDateChange($event)"
+        class="border border-gray-300 rounded px-3 py-1.5 text-sm text-[#5a5c69] focus:outline-none focus:border-[#4e73df]"
+      />
+    </div>
+  </div>
+
+  <!-- Log list -->
+  <div class="sb-card">
+    <div class="sb-card-header">
+      <h2 class="sb-card-title">Danh sách lịch uống</h2>
+    </div>
+
+    @if (store.logsLoading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+    } @else if (store.todayLogs().length === 0) {
+      <div class="text-center py-12 text-[#858796]">
+        <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">event_available</mat-icon>
+        <p>Không có lịch uống thuốc cho ngày này.</p>
+        <p class="text-xs mt-1">Hãy thiết lập lịch uống trong phần quản lý thuốc.</p>
+        <button mat-raised-button color="primary" class="mt-4" routerLink="/medications">
+          Thiết lập lịch
+        </button>
+      </div>
+    } @else {
+      <div class="divide-y divide-gray-100">
+        @for (log of store.todayLogs(); track log.id) {
+          <div class="px-5 py-4">
+            <div class="flex items-center gap-3">
+
+              <!-- Status icon -->
+              <mat-icon [class]="statusInfo(log.status).cls" style="font-size:1.5rem;width:1.5rem;height:1.5rem">
+                {{ statusInfo(log.status).icon }}
+              </mat-icon>
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-[#5a5c69]">
+                    {{ log.medicationName ?? 'Thuốc' }}
+                  </span>
+                  <span class="text-xs text-[#858796]">
+                    lúc {{ log.scheduledTime ? (log.scheduledTime | slice:0:5) : '' }}
+                  </span>
+                </div>
+                <div class="text-xs text-[#858796] mt-0.5">
+                  {{ statusInfo(log.status).label }}
+                  @if (log.status === 'Taken' && log.takenAt) {
+                    · uống lúc {{ log.takenAt | date:'HH:mm' }}
+                  }
+                  @if (log.status === 'Skipped' && log.skipReason) {
+                    · Lý do: {{ log.skipReason }}
+                  }
+                </div>
+              </div>
+
+              <!-- Actions -->
+              @if (log.status === 'Pending') {
+                <div class="flex gap-2 shrink-0">
+                  <button mat-raised-button color="primary" class="!text-xs !h-8 !px-3"
+                    [disabled]="acting()[log.id]"
+                    (click)="markTaken(log.id)">
+                    @if (acting()[log.id]) { <mat-spinner diameter="14" class="inline-block mr-1" /> }
+                    <mat-icon class="!text-sm !w-4 !h-4 mr-1">check</mat-icon> Đã uống
+                  </button>
+                  <button mat-stroked-button color="warn" class="!text-xs !h-8 !px-3"
+                    [disabled]="acting()[log.id]"
+                    (click)="toggleSkipInput(log.id)">
+                    <mat-icon class="!text-sm !w-4 !h-4 mr-1">block</mat-icon> Bỏ qua
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Skip reason input -->
+            @if (showSkipInput()[log.id]) {
+              <div class="mt-3 ml-9 flex gap-2 items-center">
+                <input
+                  type="text"
+                  [value]="skipReason()[log.id] ?? ''"
+                  (input)="onSkipReasonChange(log.id, $any($event.target).value)"
+                  placeholder="Lý do bỏ qua (không bắt buộc)..."
+                  class="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-[#4e73df]"
+                />
+                <button mat-flat-button color="warn" class="!text-xs !h-8"
+                  [disabled]="acting()[log.id]"
+                  (click)="markSkipped(log.id)">
+                  Xác nhận
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+</div>

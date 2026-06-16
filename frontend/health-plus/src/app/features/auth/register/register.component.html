@@ -1,0 +1,145 @@
+<div class="w-full max-w-md">
+  <!-- Logo -->
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-blue-600">Health+</h1>
+    <p class="mt-2 text-gray-500 text-sm">Quản lý sức khỏe cá nhân &amp; gia đình</p>
+  </div>
+
+  <!-- Bước 1: Form đăng ký -->
+  @if (step() === 1) {
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">Tạo tài khoản</h2>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="flex flex-col gap-4">
+
+        <!-- Họ và Tên (2 cột) -->
+        <div class="grid grid-cols-2 gap-3">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Họ</mat-label>
+            <input matInput formControlName="lastName" autocomplete="family-name" placeholder="Nguyễn" />
+            @if (form.get('lastName')?.touched && form.get('lastName')?.hasError('required')) {
+              <mat-error>Vui lòng nhập họ</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Tên</mat-label>
+            <input matInput formControlName="firstName" autocomplete="given-name" placeholder="Văn A" />
+            @if (form.get('firstName')?.touched && form.get('firstName')?.hasError('required')) {
+              <mat-error>Vui lòng nhập tên</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Email -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" placeholder="you@example.com" />
+          @if (form.get('email')?.touched) {
+            @if (form.get('email')?.hasError('required')) {
+              <mat-error>Vui lòng nhập email</mat-error>
+            } @else if (form.get('email')?.hasError('email')) {
+              <mat-error>Email không hợp lệ</mat-error>
+            }
+          }
+        </mat-form-field>
+
+        <!-- Số điện thoại (tùy chọn) -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Số điện thoại <span class="text-gray-400 text-xs">(tùy chọn)</span></mat-label>
+          <input matInput type="tel" formControlName="phoneNumber" autocomplete="tel" placeholder="0912 345 678" />
+          <mat-icon matSuffix class="text-gray-400">phone</mat-icon>
+          @if (form.get('phoneNumber')?.touched && form.get('phoneNumber')?.hasError('vietnamPhone')) {
+            <mat-error>Số điện thoại không hợp lệ (VD: 0912345678)</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Mật khẩu -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Mật khẩu</mat-label>
+          <input
+            matInput
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="new-password"
+          />
+          <button mat-icon-button matSuffix type="button" (click)="togglePassword()" [attr.aria-label]="showPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'">
+            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.get('password')?.touched && form.get('password')?.hasError('required')) {
+            <mat-error>Vui lòng nhập mật khẩu</mat-error>
+          } @else if (form.get('password')?.touched && form.get('password')?.hasError('passwordStrength')) {
+            <mat-error>Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường và chữ số</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Xác nhận mật khẩu -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Xác nhận mật khẩu</mat-label>
+          <input
+            matInput
+            [type]="showConfirmPassword() ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+          />
+          <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPassword()" [attr.aria-label]="showConfirmPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'">
+            <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.get('confirmPassword')?.touched) {
+            @if (form.get('confirmPassword')?.hasError('required')) {
+              <mat-error>Vui lòng xác nhận mật khẩu</mat-error>
+            } @else if (form.get('confirmPassword')?.hasError('passwordMismatch')) {
+              <mat-error>Mật khẩu không khớp</mat-error>
+            }
+          }
+        </mat-form-field>
+
+        <!-- Submit -->
+        <button
+          mat-flat-button color="primary"
+          type="submit"
+          class="w-full h-12 text-base mt-2"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <mat-spinner diameter="20" class="inline-block mr-2" />
+            Đang tạo tài khoản...
+          } @else {
+            Tạo tài khoản
+          }
+        </button>
+      </form>
+
+      <!-- Login link -->
+      <p class="mt-6 text-center text-sm text-gray-600">
+        Đã có tài khoản?
+        <a routerLink="/auth/login" class="text-blue-600 font-medium hover:underline">Đăng nhập</a>
+      </p>
+    </div>
+  }
+
+  <!-- Bước 2: Thành công — yêu cầu xác nhận email -->
+  @if (step() === 2) {
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <mat-icon class="text-green-600 text-3xl">mark_email_read</mat-icon>
+      </div>
+
+      <h2 class="text-xl font-semibold text-gray-900 mb-2">Kiểm tra email của bạn</h2>
+      <p class="text-gray-500 text-sm mb-1">Chúng tôi đã gửi email xác nhận đến</p>
+      <p class="font-medium text-gray-800 mb-6">{{ registeredEmail() }}</p>
+
+      <p class="text-gray-500 text-sm mb-8">
+        Mở email và nhấp vào liên kết xác nhận, hoặc sao chép token xác nhận và dán vào trang xác nhận bên dưới.
+      </p>
+
+      <button mat-flat-button color="primary" class="w-full h-12 text-base mb-4" (click)="goToVerifyEmail()">
+        Xác nhận email ngay
+      </button>
+
+      <a routerLink="/auth/login" class="text-sm text-gray-500 hover:underline">
+        Quay lại đăng nhập
+      </a>
+    </div>
+  }
+</div>

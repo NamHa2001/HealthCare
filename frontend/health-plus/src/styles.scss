@@ -3,16 +3,37 @@
 html, body {
   height: 100%;
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  background-color: #f8f9fc;
+  color: #5a5c69;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
+  // SB Admin 2 primary: #4e73df ≈ indigo palette
   @include mat.theme((
     color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
+      primary: mat.$blue-palette,
+      tertiary: mat.$cyan-palette,
     ),
-    typography: Roboto,
+    typography: Inter,
     density: 0,
   ));
+
+  --brand:         #4e73df;
+  --brand-dark:    #224abe;
+  --brand-success: #1cc88a;
+  --brand-info:    #36b9cc;
+  --brand-warning: #f6c23e;
+  --brand-danger:  #e74a3b;
+  --text-primary:  #5a5c69;
+  --text-muted:    #858796;
+}
+
+.mat-icon {
+  vertical-align: middle;
 }

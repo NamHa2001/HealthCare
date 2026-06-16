@@ -1,0 +1,131 @@
+<div class="max-w-2xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-6 flex items-center gap-4">
+    <button mat-icon-button routerLink="/medications">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Quét đơn thuốc</h1>
+      <p class="text-sm text-[#858796] mt-0.5">Upload ảnh hoặc chụp đơn thuốc để trích xuất tự động</p>
+    </div>
+  </div>
+
+  <!-- Error -->
+  @if (errorMsg()) {
+    <div class="flex items-center gap-2 p-3 rounded bg-red-50 text-[#e74a3b] text-sm mb-4">
+      <mat-icon>error_outline</mat-icon>
+      {{ errorMsg() }}
+    </div>
+  }
+
+  <!-- Drop zone -->
+  @if (!selectedFile()) {
+    <div class="sb-card">
+      <div
+        class="p-10 flex flex-col items-center justify-center text-center border-2 border-dashed border-[#4e73df]/30 rounded-lg m-4 cursor-pointer hover:border-[#4e73df] hover:bg-[#f8f9fc] transition-colors"
+        (click)="triggerFile()"
+        (drop)="onDrop($event)"
+        (dragover)="onDragOver($event)"
+      >
+        <mat-icon class="text-[#4e73df]/40 mb-4" style="font-size:4rem;width:4rem;height:4rem">
+          document_scanner
+        </mat-icon>
+        <p class="text-lg font-semibold text-[#5a5c69] mb-1">Kéo thả file vào đây</p>
+        <p class="text-sm text-[#858796] mb-4">hoặc chọn từ thiết bị</p>
+        <div class="flex gap-3">
+          <button mat-raised-button color="primary" (click)="triggerFile(); $event.stopPropagation()">
+            <mat-icon>folder_open</mat-icon> Chọn file
+          </button>
+          <button mat-stroked-button (click)="triggerCamera(); $event.stopPropagation()">
+            <mat-icon>camera_alt</mat-icon> Chụp ảnh
+          </button>
+        </div>
+        <p class="text-xs text-[#858796] mt-4">Hỗ trợ: JPEG, PNG, PDF · Tối đa 10MB</p>
+      </div>
+    </div>
+  } @else {
+    <!-- Preview + actions -->
+    <div class="sb-card">
+      <div class="sb-card-header">
+        <h2 class="sb-card-title">File đã chọn</h2>
+      </div>
+
+      <div class="p-5">
+        @if (preview()) {
+          <div class="mb-4 rounded-lg overflow-hidden border border-gray-200">
+            <img [src]="preview()" alt="Preview đơn thuốc"
+              class="max-h-80 w-full object-contain bg-[#f8f9fc]" />
+          </div>
+        } @else {
+          <div class="mb-4 flex items-center gap-3 p-4 bg-[#f8f9fc] rounded-lg">
+            <mat-icon class="text-[#e74a3b]">picture_as_pdf</mat-icon>
+            <span class="text-sm text-[#5a5c69] font-medium">{{ selectedFile()!.name }}</span>
+            <span class="text-xs text-[#858796]">{{ (selectedFile()!.size / 1024 | number:'1.0-0') }} KB</span>
+          </div>
+        }
+
+        <!-- Progress states -->
+        @if (state() === 'uploading') {
+          <div class="mb-4">
+            <div class="flex items-center gap-2 text-sm text-[#4e73df] mb-2">
+              <mat-spinner diameter="18" />
+              <span>Đang tải lên...</span>
+            </div>
+            <mat-progress-bar mode="indeterminate" />
+          </div>
+        }
+        @if (state() === 'processing') {
+          <div class="mb-4">
+            <div class="flex items-center gap-2 text-sm text-[#f6c23e] mb-2">
+              <mat-spinner diameter="18" />
+              <span>Đang xử lý OCR — nhận diện văn bản...</span>
+            </div>
+            <mat-progress-bar mode="indeterminate" color="accent" />
+          </div>
+        }
+
+        <div class="flex gap-3">
+          <button mat-raised-button color="primary"
+            [disabled]="state() === 'uploading' || state() === 'processing'"
+            (click)="upload()">
+            <mat-icon>auto_fix_high</mat-icon>
+            {{ state() === 'uploading' ? 'Đang tải...' : state() === 'processing' ? 'Đang xử lý...' : 'Bắt đầu OCR' }}
+          </button>
+          <button mat-stroked-button
+            [disabled]="state() === 'uploading' || state() === 'processing'"
+            (click)="removeFile()">
+            <mat-icon>close</mat-icon> Đổi file
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Hidden inputs -->
+  <input #fileInput type="file" accept="image/jpeg,image/png,application/pdf"
+    class="hidden" (change)="onFileSelected($event)" />
+  <input #cameraInput type="file" accept="image/*" capture="environment"
+    class="hidden" (change)="onFileSelected($event)" />
+
+  <!-- Instructions -->
+  <div class="sb-card mt-4">
+    <div class="sb-card-header">
+      <h2 class="sb-card-title">Hướng dẫn</h2>
+    </div>
+    <div class="p-5 space-y-3">
+      @for (tip of [
+        { icon: 'photo_camera', text: 'Chụp ảnh rõ nét, đủ ánh sáng, không bị mờ hoặc nghiêng.' },
+        { icon: 'crop_free', text: 'Đảm bảo toàn bộ đơn thuốc nằm trong khung hình.' },
+        { icon: 'check_circle', text: 'OCR nhận diện tốt nhất với ảnh JPEG/PNG chụp thẳng.' },
+        { icon: 'info', text: 'Sau khi quét, bạn có thể kiểm tra và chỉnh sửa kết quả trước khi lưu.' },
+      ]; track tip.icon) {
+        <div class="flex items-start gap-3">
+          <mat-icon class="text-[#4e73df] mt-0.5" style="font-size:1rem;width:1rem;height:1rem">{{ tip.icon }}</mat-icon>
+          <p class="text-sm text-[#858796]">{{ tip.text }}</p>
+        </div>
+      }
+    </div>
+  </div>
+
+</div>

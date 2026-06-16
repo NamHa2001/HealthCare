@@ -12,18 +12,22 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      let message = 'Đã xảy ra lỗi. Vui lòng thử lại.';
+      // 401 mà không còn refresh token → buộc đăng nhập lại.
+      if (error.status === 401 && !authService.getRefreshToken()) {
+        router.navigate(['/auth/login']);
+      }
 
+      // 404: component tự xử lý empty-state, không hiện snackbar.
+      if (error.status === 404) {
+        return throwError(() => error);
+      }
+
+      let message = 'Đã xảy ra lỗi. Vui lòng thử lại.';
       // Envelope lỗi SRS §8.2: { success: false, error: { code, message } }
       if (error.error?.error?.message) {
         message = error.error.error.message;
       } else if (error.status === 0) {
         message = 'Không thể kết nối tới máy chủ.';
-      }
-
-      // 401 mà không còn refresh token → buộc đăng nhập lại.
-      if (error.status === 401 && !authService.getRefreshToken()) {
-        router.navigate(['/auth/login']);
       }
 
       snackBar.open(message, 'Đóng', { duration: 4000 });

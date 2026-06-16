@@ -1,0 +1,98 @@
+<div class="p-6">
+  <div class="flex items-center gap-3 mb-6">
+    <button mat-icon-button routerLink="/medical-history/visits">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="text-2xl font-bold text-gray-900">
+      {{ editId() ? 'Chỉnh sửa lần khám' : 'Thêm lần khám' }}
+    </h1>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Ngày khám</mat-label>
+          <input matInput type="date" formControlName="visitDate" required />
+          @if (form.controls.visitDate.hasError('required')) {
+            <mat-error>Vui lòng chọn ngày khám</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Ngày tái khám</mat-label>
+          <input matInput type="date" formControlName="followUpDate" />
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Cơ sở y tế</mat-label>
+        <input matInput formControlName="facilityName" required maxlength="255" />
+        @if (form.controls.facilityName.hasError('required')) {
+          <mat-error>Vui lòng nhập tên cơ sở y tế</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Bác sĩ khám</mat-label>
+        <input matInput formControlName="doctorName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Lý do khám</mat-label>
+        <textarea matInput formControlName="chiefComplaint" rows="2" required></textarea>
+        @if (form.controls.chiefComplaint.hasError('required')) {
+          <mat-error>Vui lòng nhập lý do khám</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Chẩn đoán</mat-label>
+        <textarea matInput formControlName="diagnosis" rows="2" required></textarea>
+        @if (form.controls.diagnosis.hasError('required')) {
+          <mat-error>Vui lòng nhập chẩn đoán</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Mã ICD-10</mat-label>
+          <input matInput formControlName="icd10Code" maxlength="10" placeholder="VD: I10" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Chi phí (VNĐ)</mat-label>
+          <input matInput type="number" formControlName="cost" min="0" />
+          @if (form.controls.cost.hasError('min')) {
+            <mat-error>Chi phí không được âm</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Điều trị</mat-label>
+        <textarea matInput formControlName="treatment" rows="2"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Ghi chú</mat-label>
+        <textarea matInput formControlName="notes" rows="2"></textarea>
+      </mat-form-field>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" mat-stroked-button routerLink="/medical-history/visits">Hủy</button>
+        <button type="submit" mat-raised-button color="primary" [disabled]="saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" class="inline-block align-middle" />
+          } @else {
+            {{ editId() ? 'Lưu thay đổi' : 'Tạo lần khám' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

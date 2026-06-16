@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+/* Quét template Angular (.html + inline template trong .ts) để sinh utilities. */
+@source "./app/**/*.{html,ts}";
+
+@layer components {
+  /* ─── Badge phân loại (BMI / huyết áp) ─── */
+  .badge,
+  .badge-neutral,
+  .badge-info,
+  .badge-success,
+  .badge-warning,
+  .badge-danger {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-neutral { @apply bg-gray-100 text-gray-700; }
+  .badge-info    { @apply bg-sky-100 text-sky-800; }
+  .badge-success { @apply bg-green-100 text-green-800; }
+  .badge-warning { @apply bg-amber-100 text-amber-800; }
+  .badge-danger  { @apply bg-red-100 text-red-800; }
+
+  /* ─── Sidebar nav (SB Admin 2 style) ─── */
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-6 py-3 text-sm font-medium
+           text-white/70 hover:text-white hover:bg-white/[0.08]
+           transition-colors border-l-4 border-transparent;
+  }
+  .sidebar-nav-item.is-active {
+    @apply text-white bg-white/[0.13] border-white;
+  }
+
+  /* ─── Card trang (SB Admin 2: white card + shadow) ─── */
+  .sb-card {
+    @apply bg-white rounded shadow overflow-hidden;
+  }
+  .sb-card-header {
+    @apply px-5 py-3 border-b border-gray-100 flex items-center justify-between;
+  }
+  .sb-card-title {
+    @apply font-bold text-[#5a5c69] text-sm;
+  }
+}

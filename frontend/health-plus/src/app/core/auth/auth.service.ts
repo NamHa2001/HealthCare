@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { AuthStore } from './auth.store';
 import { AuthResponse, User } from './models/auth-response.model';
@@ -27,7 +27,7 @@ export class AuthService {
   logout(): Observable<void> {
     const refreshToken = this.getRefreshToken();
     return this.api.post<void>('Auth/logout', { refreshToken }).pipe(
-      tap(() => this.clearAuth()),
+      tap(() => this.clearSession()),
     );
   }
 
@@ -50,24 +50,35 @@ export class AuthService {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
   }
 
-  /** Khôi phục phiên từ localStorage khi app khởi động lại. */
-  restoreSession(): void {
+  /**
+   * Khôi phục phiên từ localStorage khi app khởi động lại.
+   * Trả về Observable để provideAppInitializer có thể await.
+   */
+  restoreSession(): Observable<void> {
     const accessToken = this.getAccessToken();
     const refreshToken = this.getRefreshToken();
-    if (accessToken && refreshToken) {
-      this.store.setTokens(accessToken, refreshToken);
-    }
+    if (!accessToken || !refreshToken) return of(undefined);
+
+    this.store.setTokens(accessToken, refreshToken);
+    return this.loadCurrentUser().pipe(
+      map(() => undefined),
+      catchError(() => {
+        this.clearSession();
+        return of(undefined);
+      }),
+    );
+  }
+
+  /** Xóa session: dùng khi logout hoặc refresh token thất bại. */
+  clearSession(): void {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    this.store.clear();
   }
 
   private handleAuth(res: AuthResponse): void {
     localStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
     this.store.setAuth(res.user, res.accessToken, res.refreshToken);
-  }
-
-  private clearAuth(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    this.store.clear();
   }
 }

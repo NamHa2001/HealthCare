@@ -1,0 +1,137 @@
+<div>
+
+  <!-- Page header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Thuốc đang dùng</h1>
+      <p class="text-sm text-[#858796] mt-1">Quản lý danh sách thuốc và lịch uống</p>
+    </div>
+    <div class="flex gap-2">
+      <button mat-stroked-button routerLink="/ocr/upload">
+        <mat-icon>document_scanner</mat-icon> Quét đơn thuốc
+      </button>
+      <button mat-raised-button color="primary" routerLink="/medications/new">
+        <mat-icon>add</mat-icon> Thêm thuốc
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick action: Today logs -->
+  <div class="sb-card mb-4 flex items-center justify-between px-5 py-3">
+    <div class="flex items-center gap-3">
+      <mat-icon class="text-[#1cc88a]">alarm</mat-icon>
+      <span class="text-sm font-semibold text-[#5a5c69]">Nhật ký hôm nay</span>
+      <span class="text-xs text-[#858796]">Xem và cập nhật tình trạng uống thuốc</span>
+    </div>
+    <button mat-stroked-button routerLink="/medications/logs">
+      <mat-icon>arrow_forward</mat-icon> Xem nhật ký
+    </button>
+  </div>
+
+  <!-- Tabs + list -->
+  <div class="sb-card">
+    <mat-tab-group [selectedIndex]="tabIndex()" (selectedIndexChange)="onTabChange($event)"
+      class="medication-tabs">
+
+      <!-- Tab: Đang dùng -->
+      <mat-tab label="Đang dùng">
+        <ng-container *ngTemplateOutlet="medList" />
+      </mat-tab>
+
+      <!-- Tab: Đã hoàn thành -->
+      <mat-tab label="Đã hoàn thành">
+        <ng-container *ngTemplateOutlet="medList" />
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+</div>
+
+<!-- Shared list template -->
+<ng-template #medList>
+  @if (store.loading()) {
+    <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+  } @else if (store.medications().length === 0) {
+    <div class="text-center py-12 text-[#858796]">
+      <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">medication</mat-icon>
+      <p>Chưa có thuốc nào{{ tabIndex() === 0 ? ' đang dùng' : ' đã hoàn thành' }}.</p>
+      @if (tabIndex() === 0) {
+        <button mat-raised-button color="primary" class="mt-4" routerLink="/medications/new">
+          Thêm thuốc đầu tiên
+        </button>
+      }
+    </div>
+  } @else {
+    <div>
+      @for (med of store.medications(); track med.id; let last = $last) {
+        <div
+          class="flex items-start px-5 py-4 hover:bg-[#f8f9fc] transition-colors"
+          [class.border-b]="!last" [class.border-gray-100]="!last"
+        >
+          <!-- Icon -->
+          <div class="w-10 h-10 rounded-full bg-[#4e73df]/10 flex items-center justify-center mr-4 shrink-0">
+            <mat-icon class="text-[#4e73df]" style="font-size:1.2rem;width:1.2rem;height:1.2rem">medication</mat-icon>
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <h3 class="font-bold text-[#5a5c69]">{{ med.drugName }}</h3>
+              @if (med.strength) {
+                <span class="text-xs text-[#858796]">{{ med.strength }}</span>
+              }
+              <span [class]="statusBadge(med).cls">{{ statusBadge(med).label }}</span>
+              @if (med.ocrSourceDocId) {
+                <span class="badge-info" matTooltip="Trích xuất từ OCR">
+                  <mat-icon class="!text-xs !w-3 !h-3">document_scanner</mat-icon>
+                </span>
+              }
+            </div>
+
+            <div class="flex flex-wrap gap-x-4 text-xs text-[#858796] mt-0.5">
+              @if (med.dosageForm) {
+                <span>{{ med.dosageForm }}</span>
+              }
+              <span>Bắt đầu: {{ med.startDate | date:'dd/MM/yyyy' }}</span>
+              @if (!med.isOngoing && med.endDate) {
+                <span>Kết thúc: {{ med.endDate | date:'dd/MM/yyyy' }}</span>
+              }
+              @if (med.isOngoing) {
+                <span class="text-[#1cc88a] font-medium">Dùng lâu dài</span>
+              }
+            </div>
+
+            @if (med.instructions) {
+              <p class="text-xs text-[#858796] mt-1 italic">{{ med.instructions }}</p>
+            }
+
+            @if (med.schedules.length > 0) {
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                @for (s of med.schedules; track s.id) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#4e73df]/10 text-[#4e73df] text-xs font-medium">
+                    <mat-icon style="font-size:0.75rem;width:0.75rem;height:0.75rem">schedule</mat-icon>
+                    {{ s.scheduledTime | slice:0:5 }}
+                    @if (s.dosageAmount) { · {{ s.dosageAmount }} }
+                  </span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-1 ml-2 shrink-0">
+            <button mat-icon-button matTooltip="Lịch uống" (click)="openSchedule(med, $event)">
+              <mat-icon class="text-[#36b9cc]">alarm</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Chỉnh sửa" (click)="openEdit(med, $event)">
+              <mat-icon class="text-[#858796]">edit</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Xóa" color="warn" (click)="delete(med, $event)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ng-template>

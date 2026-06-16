@@ -1,0 +1,107 @@
+<div class="max-w-xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-6 flex items-center gap-4">
+    <button mat-icon-button routerLink="/medications">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Lịch uống thuốc</h1>
+      @if (medication()) {
+        <p class="text-sm text-[#858796] mt-0.5">{{ medication()!.drugName }}
+          @if (medication()!.strength) { · {{ medication()!.strength }} }
+        </p>
+      }
+    </div>
+  </div>
+
+  <!-- Existing schedules -->
+  <div class="sb-card mb-4">
+    <div class="sb-card-header">
+      <h2 class="sb-card-title">Lịch uống đã thiết lập</h2>
+    </div>
+
+    @if (!medication()) {
+      <div class="flex justify-center py-8"><mat-spinner diameter="36" /></div>
+    } @else if (medication()!.schedules.length === 0) {
+      <div class="text-center py-8 text-[#858796]">
+        <mat-icon class="block mb-2 text-gray-200" style="font-size:2.5rem;width:2.5rem;height:2.5rem">alarm_off</mat-icon>
+        <p class="text-sm">Chưa có lịch uống nào</p>
+      </div>
+    } @else {
+      <div class="divide-y divide-gray-100">
+        @for (s of medication()!.schedules; track s.id) {
+          <div class="flex items-center px-5 py-3">
+            <div class="w-10 h-10 rounded-full bg-[#4e73df]/10 flex items-center justify-center mr-3 shrink-0">
+              <mat-icon class="text-[#4e73df]" style="font-size:1.1rem;width:1.1rem;height:1.1rem">schedule</mat-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-[#5a5c69]">{{ s.scheduledTime | slice:0:5 }}</div>
+              <div class="text-xs text-[#858796]">
+                @if (s.dosageAmount) { {{ s.dosageAmount }} · }
+                @if (s.reminderEnabled) {
+                  <span class="text-[#1cc88a]">Nhắc trước {{ s.reminderMinutesBefore }} phút</span>
+                } @else {
+                  <span>Không nhắc</span>
+                }
+              </div>
+            </div>
+            <button mat-icon-button color="warn" matTooltip="Xóa lịch" (click)="removeSchedule(s)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Add new schedule -->
+  <div class="sb-card">
+    <div class="sb-card-header">
+      <h2 class="sb-card-title">Thêm giờ uống</h2>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="addSchedule()" class="p-5 flex flex-col gap-4">
+
+      <div class="flex gap-3">
+        <mat-form-field appearance="outline" class="w-36">
+          <mat-label>Giờ uống *</mat-label>
+          <input matInput type="time" formControlName="scheduledTime" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Liều dùng</mat-label>
+          <input matInput formControlName="dosageAmount" placeholder="VD: 1 viên, 5ml..." />
+        </mat-form-field>
+      </div>
+
+      <mat-slide-toggle formControlName="reminderEnabled" color="primary">
+        Bật nhắc nhở
+      </mat-slide-toggle>
+
+      @if (form.controls.reminderEnabled.value) {
+        <mat-form-field appearance="outline" class="w-48">
+          <mat-label>Nhắc trước (phút)</mat-label>
+          <mat-select formControlName="reminderMinutesBefore">
+            <mat-option [value]="5">5 phút</mat-option>
+            <mat-option [value]="10">10 phút</mat-option>
+            <mat-option [value]="15">15 phút</mat-option>
+            <mat-option [value]="30">30 phút</mat-option>
+            <mat-option [value]="60">1 giờ</mat-option>
+          </mat-select>
+        </mat-form-field>
+      }
+
+      <div class="flex gap-3 pt-1">
+        <button mat-raised-button color="primary" type="submit" [disabled]="saving() || form.invalid">
+          @if (saving()) { <mat-spinner diameter="18" class="inline-block mr-2" /> }
+          <mat-icon>add</mat-icon> Thêm giờ uống
+        </button>
+        <button mat-raised-button type="button" (click)="done()">
+          Xong
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
