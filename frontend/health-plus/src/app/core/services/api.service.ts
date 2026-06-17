@@ -53,6 +53,10 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}/${path}`).pipe(map(() => undefined));
   }
 
+  getBlob(path: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${path}`, { responseType: 'blob' });
+  }
+
   private buildParams(params?: QueryParams): HttpParams {
     let httpParams = new HttpParams();
     if (params) {

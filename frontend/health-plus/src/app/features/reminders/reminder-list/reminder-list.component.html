@@ -1,0 +1,83 @@
+<div>
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Nhắc lịch</h1>
+      <p class="text-sm text-[#858796] mt-1">Quản lý các nhắc nhở sức khỏe</p>
+    </div>
+    <button mat-raised-button color="primary" routerLink="/reminders/add">
+      <mat-icon>add</mat-icon> Tạo nhắc lịch
+    </button>
+  </div>
+
+  <!-- Filter chips -->
+  <div class="flex flex-wrap gap-2 mb-4">
+    @for (f of filters; track f.value) {
+      <button
+        class="px-3 py-1 rounded-full text-sm border transition-colors"
+        [class.bg-[#4e73df]]="store.filterStatus() === f.value"
+        [class.text-white]="store.filterStatus() === f.value"
+        [class.border-[#4e73df]]="store.filterStatus() === f.value"
+        [class.border-gray-200]="store.filterStatus() !== f.value"
+        [class.text-[#858796]]="store.filterStatus() !== f.value"
+        (click)="applyFilter(f.value)">
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <div class="sb-card">
+    @if (store.loading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+    } @else if (store.reminders().length === 0) {
+      <div class="text-center py-12 text-[#858796]">
+        <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">notifications_off</mat-icon>
+        <p>Chưa có nhắc lịch nào.</p>
+        <button mat-raised-button color="primary" class="mt-4" routerLink="/reminders/add">
+          Tạo nhắc lịch đầu tiên
+        </button>
+      </div>
+    } @else {
+      @for (r of store.reminders(); track r.id; let last = $last) {
+        <div class="flex items-start px-5 py-4 hover:bg-[#f8f9fc] transition-colors"
+             [class.border-b]="!last" [class.border-gray-100]="!last">
+
+          <!-- Icon -->
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 shrink-0 bg-[#4e73df]/10">
+            <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem" class="text-[#4e73df]">
+              {{ typeIcon(r.type) }}
+            </mat-icon>
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <h3 class="font-bold text-[#5a5c69]">{{ r.title }}</h3>
+              <span [class]="statusInfo(r.status).cls">
+                {{ statusInfo(r.status).label }}
+              </span>
+            </div>
+            @if (r.body) {
+              <p class="text-sm text-[#858796] mb-1 truncate">{{ r.body }}</p>
+            }
+            <div class="flex flex-wrap gap-x-4 text-xs text-[#858796]">
+              <span>
+                <mat-icon style="font-size:0.75rem;width:0.75rem;height:0.75rem;vertical-align:middle">schedule</mat-icon>
+                {{ r.remindAt | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+              @if (r.sentAt) {
+                <span>Đã gửi: {{ r.sentAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Cancel action (only pending) -->
+          @if (r.status === 'pending') {
+            <button mat-icon-button matTooltip="Hủy nhắc" color="warn" (click)="cancel(r, $event)">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

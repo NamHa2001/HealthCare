@@ -1,8 +1,12 @@
 ﻿using HealthCare.Application.Common.Interfaces;
+using HealthCare.Infrastructure.BackgroundJobs;
 using HealthCare.Infrastructure.Persistence;
+using HealthCare.Infrastructure.Persistence.Seeds;
 using HealthCare.Infrastructure.Services.Auth;
+using HealthCare.Infrastructure.Services.Notifications;
 using HealthCare.Infrastructure.Services.Ocr;
 using HealthCare.Infrastructure.Services.Storage;
+using HealthCare.Infrastructure.Services.Vaccines;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +50,25 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<EasyOcrService>();
         services.AddScoped<IOcrService, OcrServiceProxy>();
 
+        // Vaccine & Notification services
+        services.AddScoped<IVaccineScheduleService, VaccineScheduleService>();
+        services.AddSingleton<IVaccinePassportService, VaccinePassportService>();
+        services.AddScoped<INotificationService, FcmNotificationService>();
+
+        // Background jobs
+        services.AddScoped<ReminderProcessorJob>();
+        services.AddScoped<VaccineReminderJob>();
+
         return services;
+    }
+
+    public static async Task SeedDatabaseAsync(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await RoleSeeder.SeedAsync(db);
+        await PermissionSeeder.SeedAsync(db);
+        await DrugCatalogSeeder.SeedAsync(db);
+        await VaccineCatalogSeeder.SeedAsync(db);
     }
 }

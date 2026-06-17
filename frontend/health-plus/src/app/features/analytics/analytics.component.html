@@ -1,0 +1,359 @@
+<div class="p-4 md:p-6 space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-[#5a5c69]">Phân tích sức khỏe</h1>
+      <p class="text-sm text-[#858796] mt-0.5">Tổng quan xu hướng & chỉ số sức khỏe cá nhân</p>
+    </div>
+
+    <!-- Day selector -->
+    <mat-button-toggle-group [value]="days()" (change)="changeDays($event.value)" class="shadow-sm">
+      <mat-button-toggle [value]="7">7 ngày</mat-button-toggle>
+      <mat-button-toggle [value]="30">30 ngày</mat-button-toggle>
+      <mat-button-toggle [value]="90">90 ngày</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  @if (store.loading()) {
+    <div class="flex justify-center py-16">
+      <div class="animate-spin rounded-full h-10 w-10 border-4 border-[#4e73df] border-t-transparent"></div>
+    </div>
+  } @else {
+
+    <!-- Summary stats -->
+    @if (store.summary(); as s) {
+      <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+
+        <!-- BMI -->
+        <div class="sb-card p-4 flex flex-col gap-1">
+          <span class="text-xs font-semibold text-[#858796] uppercase tracking-wide">BMI</span>
+          <span class="text-2xl font-bold text-[#5a5c69]">
+            {{ s.latestBmi !== null ? (s.latestBmi | number:'1.1-1') : '—' }}
+          </span>
+          <span class="text-xs font-medium" [ngClass]="bmiClass(s.bmiLabel)">
+            {{ s.bmiLabel ?? 'Chưa có dữ liệu' }}
+          </span>
+        </div>
+
+        <!-- Cân nặng -->
+        <div class="sb-card p-4 flex flex-col gap-1">
+          <span class="text-xs font-semibold text-[#858796] uppercase tracking-wide">Cân nặng</span>
+          <span class="text-2xl font-bold text-[#5a5c69]">
+            {{ s.latestWeightKg !== null ? (s.latestWeightKg | number:'1.1-1') : '—' }}
+          </span>
+          <span class="text-xs text-[#858796]">kg</span>
+        </div>
+
+        <!-- Đường huyết -->
+        <div class="sb-card p-4 flex flex-col gap-1">
+          <span class="text-xs font-semibold text-[#858796] uppercase tracking-wide">Đường huyết</span>
+          <span class="text-2xl font-bold text-[#5a5c69]">
+            {{ s.latestGlucose !== null ? (s.latestGlucose | number:'1.1-1') : '—' }}
+          </span>
+          <span class="text-xs text-[#858796]">mmol/L</span>
+        </div>
+
+        <!-- Huyết áp -->
+        <div class="sb-card p-4 flex flex-col gap-1">
+          <span class="text-xs font-semibold text-[#858796] uppercase tracking-wide">Huyết áp</span>
+          <span class="text-2xl font-bold text-[#5a5c69]">
+            @if (s.latestSystolic !== null) {
+              {{ s.latestSystolic }}/{{ s.latestDiastolic }}
+            } @else {
+              —
+            }
+          </span>
+          <span class="text-xs font-medium" [ngClass]="bpClass(s.bpLabel)">
+            {{ s.bpLabel ?? 'Chưa có dữ liệu' }}
+          </span>
+        </div>
+
+        <!-- Nhắc lịch -->
+        <div class="sb-card p-4 flex flex-col gap-1">
+          <span class="text-xs font-semibold text-[#858796] uppercase tracking-wide">Nhắc lịch</span>
+          <span class="text-2xl font-bold text-[#f6c23e]">{{ s.upcomingRemindersCount }}</span>
+          <span class="text-xs text-[#858796]">sắp tới</span>
+        </div>
+
+        <!-- Vắc-xin -->
+        <div class="sb-card p-4 flex flex-col gap-1">
+          <span class="text-xs font-semibold text-[#858796] uppercase tracking-wide">Vắc-xin</span>
+          <span class="text-2xl font-bold text-[#1cc88a]">{{ s.vaccinesCompleted }}</span>
+          <span class="text-xs text-[#858796]">đã tiêm</span>
+        </div>
+
+      </div>
+    }
+
+    <!-- Health Score Widget -->
+    @if (store.healthScore(); as hs) {
+      <div class="sb-card p-5">
+        <div class="sb-card-header mb-4">
+          <h2 class="sb-card-title">Điểm sức khỏe tổng hợp</h2>
+          <span class="text-xs text-[#858796]">Dựa trên BMI · Huyết áp · Vắc-xin · Tuân thủ thuốc</span>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-6">
+
+          <!-- Vòng tròn điểm -->
+          <div class="relative w-28 h-28 flex-shrink-0">
+            <svg class="w-28 h-28 -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8e8f0" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9" fill="none"
+                [attr.stroke]="gradeColor(hs.grade)"
+                stroke-width="3"
+                [attr.stroke-dasharray]="hs.totalScore + ', 100'"
+                stroke-linecap="round"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="text-2xl font-bold text-[#5a5c69]">{{ hs.totalScore }}</span>
+              <span class="text-xs text-[#858796]">/ 100</span>
+            </div>
+          </div>
+
+          <!-- Phân loại + breakdown -->
+          <div class="flex-1 min-w-0">
+            <p class="text-lg font-bold mb-3" [style.color]="gradeColor(hs.grade)">{{ hs.grade }}</p>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-[#858796]">BMI</span>
+                <span class="font-semibold text-[#5a5c69]">{{ hs.bmiScore }}/25
+                  @if (hs.bmiLabel) { <span class="text-xs text-[#858796] ml-1">({{ hs.bmiLabel }})</span> }
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[#858796]">Huyết áp</span>
+                <span class="font-semibold text-[#5a5c69]">{{ hs.bpScore }}/25
+                  @if (hs.bpLabel) { <span class="text-xs text-[#858796] ml-1">({{ hs.bpLabel }})</span> }
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[#858796]">Vắc-xin</span>
+                <span class="font-semibold text-[#5a5c69]">{{ hs.vaccineScore }}/25
+                  <span class="text-xs text-[#858796] ml-1">({{ hs.completedVaccines }}/{{ hs.totalVaccines }} mũi)</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[#858796]">Tuân thủ thuốc</span>
+                <span class="font-semibold text-[#5a5c69]">{{ hs.medicationScore }}/25</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    }
+
+    <!-- Charts row 1: BMI + Blood Pressure -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <app-bmi-trend-chart [points]="store.bmiTrend()" />
+      <app-bp-trend-chart [points]="store.bpTrend()" />
+    </div>
+
+    <!-- Charts row 2: Glucose trend + Visit frequency -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+      <!-- Xu hướng đường huyết -->
+      <div class="sb-card p-5">
+        <div class="sb-card-header mb-4">
+          <h2 class="sb-card-title">Xu hướng đường huyết</h2>
+          <span class="text-xs text-[#858796]">mmol/L</span>
+        </div>
+        @if (store.glucoseTrend().length > 0) {
+          <div class="overflow-x-auto">
+            <svg viewBox="0 0 400 120" class="w-full h-28" preserveAspectRatio="none">
+              @if (store.glucoseTrend().length > 1) {
+                <polyline
+                  [attr.points]="glucosePolyline(store.glucoseTrend())"
+                  fill="none" stroke="#4e73df" stroke-width="2" stroke-linejoin="round"/>
+              }
+              @for (p of store.glucoseTrend(); track p.date; let i = $index) {
+                <circle
+                  [attr.cx]="glucoseCx(i, store.glucoseTrend().length)"
+                  [attr.cy]="glucoseCy(p.value, store.glucoseTrend())"
+                  r="3"
+                  [attr.fill]="p.value > 7.0 ? '#e74a3b' : '#4e73df'"/>
+              }
+            </svg>
+          </div>
+          <div class="flex justify-between text-xs text-[#858796] mt-1">
+            <span>{{ store.glucoseTrend()[0]?.date | slice:0:10 }}</span>
+            <span>{{ store.glucoseTrend()[store.glucoseTrend().length - 1]?.date | slice:0:10 }}</span>
+          </div>
+        } @else {
+          <div class="flex items-center justify-center h-28 text-[#858796] text-sm gap-2">
+            <mat-icon>show_chart</mat-icon>
+            Chưa có dữ liệu đường huyết
+          </div>
+        }
+      </div>
+
+      <!-- Tần suất khám bệnh -->
+      <div class="sb-card p-5">
+        <div class="sb-card-header mb-4">
+          <h2 class="sb-card-title">Tần suất khám bệnh</h2>
+          <span class="text-xs text-[#858796]">lần / tháng</span>
+        </div>
+        @if (store.visitFrequency().length > 0) {
+          <div class="space-y-2">
+            @for (v of store.visitFrequency(); track v.month) {
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-[#858796] w-14 shrink-0 text-right">{{ v.month }}</span>
+                <div class="flex-1 h-5 bg-[#e8e8f0] rounded overflow-hidden">
+                  <div class="h-full bg-[#36b9cc] rounded transition-all duration-300"
+                    [style.width.%]="maxCount(store.visitFrequency()) > 0 ? (v.count / maxCount(store.visitFrequency())) * 100 : 0">
+                  </div>
+                </div>
+                <span class="text-xs font-semibold text-[#5a5c69] w-5 shrink-0">{{ v.count }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex items-center justify-center h-28 text-[#858796] text-sm gap-2">
+            <mat-icon>local_hospital</mat-icon>
+            Chưa có dữ liệu lịch khám
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- Charts row 3: Vaccine progress + Compliance by week -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+      <!-- Tiến trình vắc-xin -->
+      <div class="sb-card p-5">
+        <div class="sb-card-header mb-4">
+          <h2 class="sb-card-title">Tiến trình vắc-xin</h2>
+        </div>
+        @if (store.vaccineProgress().length > 0) {
+          <div class="space-y-3">
+            @for (v of store.vaccineProgress(); track v.vaccineName) {
+              <div>
+                <div class="flex justify-between text-sm mb-1">
+                  <span class="text-[#5a5c69] font-medium truncate pr-2">{{ v.vaccineName }}</span>
+                  <span class="text-xs text-[#858796] shrink-0">{{ v.completedDoses }}/{{ v.totalDoses }} mũi</span>
+                </div>
+                <div class="h-2.5 bg-[#e8e8f0] rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500"
+                    [style.width.%]="v.percentage"
+                    [ngClass]="v.percentage >= 100 ? 'bg-[#1cc88a]' : v.percentage >= 50 ? 'bg-[#4e73df]' : 'bg-[#f6c23e]'">
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex items-center justify-center h-28 text-[#858796] text-sm gap-2">
+            <mat-icon>vaccines</mat-icon>
+            Chưa có dữ liệu vắc-xin
+          </div>
+        }
+      </div>
+
+      <!-- Tuân thủ thuốc theo tuần -->
+      <div class="sb-card p-5">
+        <div class="sb-card-header mb-4">
+          <h2 class="sb-card-title">Tuân thủ thuốc theo tuần</h2>
+        </div>
+        @if (store.compliance().length > 0) {
+          <div class="space-y-2">
+            @for (w of store.compliance(); track w.weekLabel) {
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-[#858796] w-16 shrink-0">{{ w.weekLabel }}</span>
+                <div class="flex-1 h-5 bg-[#e8e8f0] rounded overflow-hidden">
+                  <div class="h-full rounded transition-all duration-300"
+                    [style.width.%]="w.complianceRate * 100"
+                    [ngClass]="w.complianceRate >= 0.8 ? 'bg-[#1cc88a]' : w.complianceRate >= 0.5 ? 'bg-[#f6c23e]' : 'bg-[#e74a3b]'">
+                  </div>
+                </div>
+                <span class="text-xs font-semibold text-[#5a5c69] w-10 shrink-0 text-right">
+                  {{ w.complianceRate | percent }}
+                </span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex items-center justify-center h-28 text-[#858796] text-sm gap-2">
+            <mat-icon>medication</mat-icon>
+            Chưa có dữ liệu uống thuốc
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- Compliance donut + Alerts row -->
+    @if (store.summary(); as s) {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- Tuân thủ thuốc -->
+        <div class="sb-card p-5">
+          <div class="sb-card-header mb-4">
+            <h2 class="sb-card-title">Tuân thủ uống thuốc</h2>
+          </div>
+          @if (s.medicationComplianceRate !== null) {
+            <div class="flex items-center gap-4">
+              <div class="relative w-20 h-20 flex-shrink-0">
+                <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8e8f0" stroke-width="3.8"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none"
+                    [attr.stroke]="s.medicationComplianceRate >= 0.8 ? '#1cc88a' : s.medicationComplianceRate >= 0.5 ? '#f6c23e' : '#e74a3b'"
+                    stroke-width="3.8"
+                    [attr.stroke-dasharray]="(s.medicationComplianceRate * 100) + ', 100'"
+                    stroke-linecap="round"/>
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-[#5a5c69]">
+                  {{ s.medicationComplianceRate | percent }}
+                </span>
+              </div>
+              <div>
+                @if (s.medicationComplianceRate >= 0.8) {
+                  <p class="font-semibold text-[#1cc88a]">Tốt</p>
+                  <p class="text-sm text-[#858796]">Bạn đang uống thuốc đều đặn.</p>
+                } @else if (s.medicationComplianceRate >= 0.5) {
+                  <p class="font-semibold text-[#f6c23e]">Cần cải thiện</p>
+                  <p class="text-sm text-[#858796]">Cố gắng uống thuốc đúng giờ hơn.</p>
+                } @else {
+                  <p class="font-semibold text-[#e74a3b]">Thấp</p>
+                  <p class="text-sm text-[#858796]">Hãy bật nhắc lịch để được nhắc uống thuốc.</p>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="flex items-center gap-3 text-[#858796]">
+              <mat-icon>medication</mat-icon>
+              <span class="text-sm">Chưa có dữ liệu lịch uống thuốc.</span>
+            </div>
+          }
+        </div>
+
+        <!-- Cảnh báo sức khỏe -->
+        <div class="sb-card p-5">
+          <div class="sb-card-header mb-4">
+            <h2 class="sb-card-title">Cảnh báo sức khỏe</h2>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
+              [ngClass]="s.activeAlertsCount > 0 ? 'bg-red-100' : 'bg-green-100'">
+              <mat-icon [ngClass]="s.activeAlertsCount > 0 ? 'text-[#e74a3b]' : 'text-[#1cc88a]'">
+                {{ s.activeAlertsCount > 0 ? 'warning' : 'check_circle' }}
+              </mat-icon>
+            </div>
+            <div>
+              <p class="text-2xl font-bold" [ngClass]="s.activeAlertsCount > 0 ? 'text-[#e74a3b]' : 'text-[#1cc88a]'">
+                {{ s.activeAlertsCount }}
+              </p>
+              <p class="text-sm text-[#858796]">
+                {{ s.activeAlertsCount > 0 ? 'cảnh báo chưa xử lý' : 'Không có cảnh báo nào' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+
+  }
+
+</div>

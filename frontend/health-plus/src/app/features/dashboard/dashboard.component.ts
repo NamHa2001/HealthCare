@@ -7,8 +7,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthStore } from '../../core/auth/auth.store';
 import { HealthRecordsStore } from '../health-records/health-records.store';
 import { MedicalHistoryStore } from '../medical-history/medical-history.store';
+import { AnalyticsStore } from '../analytics/analytics.store';
 import { BmiClassPipe } from '../../shared/pipes/bmi-class.pipe';
 import { BpClassPipe } from '../../shared/pipes/bp-class.pipe';
+import { BmiTrendChartComponent } from './widgets/bmi-trend-chart/bmi-trend-chart.component';
+import { BpTrendChartComponent } from './widgets/bp-trend-chart/bp-trend-chart.component';
+import { StatsSummaryComponent } from './widgets/stats-summary/stats-summary.component';
 
 interface HealthAlert {
   icon: string;
@@ -23,6 +27,7 @@ interface HealthAlert {
     DatePipe, DecimalPipe, RouterLink,
     MatIconModule, MatButtonModule, MatProgressSpinnerModule,
     BmiClassPipe, BpClassPipe,
+    BmiTrendChartComponent, BpTrendChartComponent, StatsSummaryComponent,
   ],
   templateUrl: './dashboard.component.html',
 })
@@ -30,8 +35,8 @@ export class DashboardComponent implements OnInit {
   protected readonly auth = inject(AuthStore);
   protected readonly health = inject(HealthRecordsStore);
   protected readonly medical = inject(MedicalHistoryStore);
+  protected readonly analytics = inject(AnalyticsStore);
 
-  // Lời chào theo thời điểm trong ngày
   protected readonly greeting = computed(() => {
     const h = new Date().getHours();
     if (h < 11) return 'Chào buổi sáng';
@@ -41,14 +46,10 @@ export class DashboardComponent implements OnInit {
   });
 
   protected readonly firstName = computed(() => this.auth.currentUser()?.firstName ?? '');
-
-  // Bản ghi mới nhất (store sắp xếp giảm dần theo thời gian đo)
   protected readonly latestMeasurement = computed(() => this.health.measurements()[0] ?? null);
   protected readonly latestBp = computed(() => this.health.bpLogs()[0] ?? null);
-
   protected readonly latestBmi = computed(() => this.latestMeasurement()?.bmi ?? null);
 
-  // Chỉ số sức khỏe ước tính (0-100) từ BMI + huyết áp — dữ liệu sẵn có.
   protected readonly healthScore = computed<number | null>(() => {
     const bmi = this.latestBmi();
     const bp = this.latestBp();
@@ -69,15 +70,6 @@ export class DashboardComponent implements OnInit {
     return Math.max(0, Math.min(100, score));
   });
 
-  protected readonly scoreColor = computed(() => {
-    const s = this.healthScore();
-    if (s == null) return 'text-slate-400';
-    if (s >= 80) return 'text-green-600';
-    if (s >= 60) return 'text-amber-500';
-    return 'text-red-600';
-  });
-
-  // Cảnh báo dựa trên ngưỡng SRS §3.2
   protected readonly alerts = computed<HealthAlert[]>(() => {
     const list: HealthAlert[] = [];
     const m = this.latestMeasurement();
@@ -109,5 +101,8 @@ export class DashboardComponent implements OnInit {
     this.health.loadMeasurements({ page: 1, pageSize: 5 });
     this.health.loadBpLogs({ page: 1, pageSize: 5 });
     this.medical.loadVisits({ page: 1, pageSize: 5 });
+    this.analytics.loadSummary();
+    this.analytics.loadBmiTrend(30);
+    this.analytics.loadBpTrend(30);
   }
 }

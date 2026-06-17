@@ -11,7 +11,18 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
   return next(req).pipe(
-    catchError((error: HttpErrorResponse) => {
+    catchError((error: unknown) => {
+      // Request đã được xếp hàng offline — hiển thị thông báo nhẹ, không phải lỗi.
+      if (error instanceof Error && (error as any).queued) {
+        snackBar.open('Đang ngoại tuyến — yêu cầu sẽ được đồng bộ khi có kết nối.', 'OK', {
+          duration: 4000,
+          panelClass: ['bg-gray-800', 'text-white'],
+        });
+        return throwError(() => error);
+      }
+
+      if (!(error instanceof HttpErrorResponse)) return throwError(() => error);
+
       // 401 mà không còn refresh token → buộc đăng nhập lại.
       if (error.status === 401 && !authService.getRefreshToken()) {
         router.navigate(['/auth/login']);
@@ -23,7 +34,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       let message = 'Đã xảy ra lỗi. Vui lòng thử lại.';
-      // Envelope lỗi SRS §8.2: { success: false, error: { code, message } }
       if (error.error?.error?.message) {
         message = error.error.error.message;
       } else if (error.status === 0) {

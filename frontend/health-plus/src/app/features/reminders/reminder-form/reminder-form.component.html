@@ -1,0 +1,56 @@
+<div class="max-w-xl mx-auto">
+  <div class="mb-6 flex items-center gap-3">
+    <button mat-icon-button routerLink="/reminders">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Tạo nhắc lịch</h1>
+      <p class="text-sm text-[#858796]">Đặt thông báo nhắc nhở sức khỏe</p>
+    </div>
+  </div>
+
+  <div class="sb-card p-6">
+    @if (errorMsg()) {
+      <div class="mb-4 p-3 rounded bg-red-50 text-red-600 text-sm">{{ errorMsg() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Loại nhắc *</mat-label>
+        <mat-select formControlName="type">
+          @for (t of types; track t.value) {
+            <mat-option [value]="t.value">{{ t.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tiêu đề *</mat-label>
+        <input matInput formControlName="title" placeholder="VD: Tiêm nhắc vắc-xin Cúm mùa">
+        <mat-error>Vui lòng nhập tiêu đề</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nội dung</mat-label>
+        <textarea matInput formControlName="body" rows="3"
+          placeholder="Thêm ghi chú hoặc hướng dẫn..."></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Thời gian nhắc *</mat-label>
+        <input matInput type="datetime-local" formControlName="remindAt">
+        <mat-error>Vui lòng chọn thời gian</mat-error>
+      </mat-form-field>
+
+      <div class="flex gap-3 justify-end pt-2">
+        <button mat-stroked-button type="button" routerLink="/reminders">Hủy</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+          @if (saving()) {
+            <mat-spinner diameter="18" class="inline-block mr-2"></mat-spinner>
+          }
+          Tạo nhắc lịch
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiService } from '../services/api.service';
+import { PushSubscriptionService } from '../services/push-subscription.service';
 import { AuthStore } from './auth.store';
 import { AuthResponse, User } from './models/auth-response.model';
 import { LoginRequest } from './models/login-request.model';
@@ -13,6 +14,7 @@ const REFRESH_TOKEN_KEY = 'hp_refresh_token';
 export class AuthService {
   private readonly api = inject(ApiService);
   private readonly store = inject(AuthStore);
+  private readonly push = inject(PushSubscriptionService);
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.api.post<AuthResponse>('Auth/login', request).pipe(
@@ -80,5 +82,6 @@ export class AuthService {
     localStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
     this.store.setAuth(res.user, res.accessToken, res.refreshToken);
+    void this.push.register();
   }
 }

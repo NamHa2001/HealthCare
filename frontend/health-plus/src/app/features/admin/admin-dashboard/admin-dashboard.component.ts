@@ -1,12 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AdminStore } from '../admin.store';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  template: `
-    <div class="flex items-center justify-center h-64 text-gray-400">
-      <p class="text-lg">Quản trị hệ thống — đang phát triển (Sprint 8)</p>
-    </div>
-  `,
+  imports: [DatePipe, RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
+  templateUrl: './admin-dashboard.component.html',
 })
-export class AdminDashboardComponent {}
+export class AdminDashboardComponent implements OnInit {
+  protected readonly store = inject(AdminStore);
+
+  ngOnInit(): void {
+    this.store.loadStats();
+    this.store.loadUsers(undefined, undefined, 1);
+    this.store.loadAuditLogs(undefined, 1);
+  }
+}

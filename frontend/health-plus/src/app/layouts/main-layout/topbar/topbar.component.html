@@ -35,6 +35,11 @@
         <p class="text-sm font-semibold text-[#5a5c69]">{{ userFullName() }}</p>
         <p class="text-xs text-[#858796] truncate">{{ currentUser()?.email }}</p>
       </div>
+      <button mat-menu-item routerLink="/settings">
+        <mat-icon>manage_accounts</mat-icon>
+        <span>Cài đặt tài khoản</span>
+      </button>
+      <mat-divider />
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Đăng xuất</span>

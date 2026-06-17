@@ -1,0 +1,218 @@
+<div class="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
+
+  <div>
+    <h1 class="text-xl font-bold text-[#5a5c69]">Quản lý gia đình</h1>
+    <p class="text-sm text-[#858796] mt-0.5">Thêm và quản lý hồ sơ sức khỏe cho các thành viên gia đình</p>
+  </div>
+
+  <!-- Loading -->
+  @if (store.loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="48" />
+    </div>
+  }
+
+  <!-- Chưa có nhóm gia đình -->
+  @if (!store.loading() && !store.group()) {
+    <div class="sb-card p-8 text-center space-y-4">
+      <div class="w-16 h-16 rounded-full bg-[#e8f0fe] flex items-center justify-center mx-auto">
+        <mat-icon class="text-[#4e73df] text-3xl" style="font-size: 2rem; width: 2rem; height: 2rem;">
+          group_add
+        </mat-icon>
+      </div>
+      <div>
+        <h2 class="text-base font-semibold text-[#3a3b45]">Bạn chưa có nhóm gia đình</h2>
+        <p class="text-sm text-[#858796] mt-1">
+          Tạo nhóm để quản lý hồ sơ sức khỏe cho tất cả thành viên trong gia đình
+        </p>
+      </div>
+
+      <form [formGroup]="groupForm" (ngSubmit)="createGroup()" class="max-w-sm mx-auto text-left space-y-3">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Tên nhóm gia đình</mat-label>
+          <mat-icon matPrefix class="mr-2 text-[#858796]">home</mat-icon>
+          <input matInput formControlName="name" placeholder="Gia đình Nguyễn" />
+          @if (groupForm.get('name')?.hasError('required') && groupForm.get('name')?.touched) {
+            <mat-error>Tên nhóm không được để trống</mat-error>
+          }
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit"
+          class="w-full" [disabled]="savingGroup()">
+          @if (savingGroup()) {
+            <mat-spinner diameter="18" class="inline-block mr-2" />
+          } @else {
+            <mat-icon>add</mat-icon>
+          }
+          Tạo nhóm gia đình
+        </button>
+      </form>
+    </div>
+  }
+
+  <!-- Đã có nhóm gia đình -->
+  @if (!store.loading() && store.group(); as group) {
+
+    <!-- Header nhóm -->
+    <div class="sb-card p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-full bg-[#e8f0fe] flex items-center justify-center flex-shrink-0">
+        <mat-icon class="text-[#4e73df]">home</mat-icon>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h2 class="text-base font-semibold text-[#3a3b45] truncate">{{ group.name }}</h2>
+        <p class="text-xs text-[#858796]">
+          {{ group.members.length }} thành viên &nbsp;·&nbsp;
+          Tạo {{ group.createdAt | date:'dd/MM/yyyy' }}
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <button mat-stroked-button color="primary"
+          (click)="showAddForm.set(!showAddForm()); showInvite.set(false)">
+          <mat-icon>{{ showAddForm() ? 'close' : 'person_add' }}</mat-icon>
+          {{ showAddForm() ? 'Hủy' : 'Thêm thành viên' }}
+        </button>
+        <button mat-stroked-button
+          (click)="showInvite.set(!showInvite()); showAddForm.set(false)"
+          matTooltip="Mời người dùng đã có tài khoản qua email">
+          <mat-icon>{{ showInvite() ? 'close' : 'mail' }}</mat-icon>
+          {{ showInvite() ? 'Hủy' : 'Mời qua email' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Form mời qua email (SRS §2.1) -->
+    @if (showInvite()) {
+      <div class="sb-card p-5">
+        <h3 class="text-sm font-semibold text-[#5a5c69] mb-4 flex items-center gap-1">
+          <mat-icon class="text-base">mail</mat-icon>
+          Mời thành viên qua email
+        </h3>
+        <form [formGroup]="inviteForm" (ngSubmit)="sendInvite()" class="flex gap-3 items-start">
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Email người được mời</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="ten@example.com" />
+            @if (inviteForm.get('email')?.hasError('email') && inviteForm.get('email')?.touched) {
+              <mat-error>Email không đúng định dạng</mat-error>
+            }
+          </mat-form-field>
+          <button mat-raised-button color="primary" type="submit" [disabled]="sendingInvite()" class="mt-1">
+            @if (sendingInvite()) { <mat-spinner diameter="18" class="inline-block mr-1" /> }
+            Gửi lời mời
+          </button>
+        </form>
+        <p class="text-xs text-[#858796] mt-2">Người được mời sẽ nhận email với link chấp nhận (hiệu lực 7 ngày).</p>
+      </div>
+    }
+
+    <!-- Form thêm thành viên -->
+    @if (showAddForm()) {
+      <div class="sb-card p-5">
+        <h3 class="text-sm font-semibold text-[#5a5c69] mb-4 flex items-center gap-1">
+          <mat-icon class="text-base">person_add</mat-icon>
+          Thêm thành viên mới
+        </h3>
+        <form [formGroup]="memberForm" (ngSubmit)="addMember()" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <mat-form-field appearance="outline" class="w-full sm:col-span-2">
+              <mat-label>Họ và tên</mat-label>
+              <input matInput formControlName="fullName" placeholder="Nguyễn Văn A" />
+              @if (memberForm.get('fullName')?.hasError('required') && memberForm.get('fullName')?.touched) {
+                <mat-error>Họ tên không được để trống</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Ngày sinh</mat-label>
+              <input matInput type="date" formControlName="dateOfBirth" />
+              @if (memberForm.get('dateOfBirth')?.hasError('required') && memberForm.get('dateOfBirth')?.touched) {
+                <mat-error>Ngày sinh không được để trống</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Giới tính</mat-label>
+              <mat-select formControlName="gender">
+                @for (g of genders; track g.value) {
+                  <mat-option [value]="g.value">{{ g.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full sm:col-span-2">
+              <mat-label>Mối quan hệ với bạn</mat-label>
+              <mat-select formControlName="relationship">
+                <mat-option [value]="null">— Không xác định</mat-option>
+                @for (r of relationships; track r.value) {
+                  <mat-option [value]="r.value">{{ r.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button mat-stroked-button type="button" (click)="showAddForm.set(false)">Hủy</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="savingMember()">
+              @if (savingMember()) {
+                <mat-spinner diameter="18" class="inline-block mr-2" />
+              } @else {
+                <mat-icon>save</mat-icon>
+              }
+              Thêm thành viên
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Danh sách thành viên -->
+    @if (group.members.length === 0) {
+      <div class="sb-card p-8 text-center text-[#858796]">
+        <mat-icon class="text-4xl mb-2" style="font-size: 2.5rem; width: 2.5rem; height: 2.5rem;">
+          people_outline
+        </mat-icon>
+        <p class="text-sm">Chưa có thành viên nào. Nhấn "Thêm thành viên" để bắt đầu.</p>
+      </div>
+    } @else {
+      <div class="space-y-3">
+        @for (member of group.members; track member.id) {
+          <div class="sb-card p-4 flex items-center gap-4">
+
+            <!-- Avatar -->
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              [class]="member.gender === 'female' ? 'bg-pink-100' : 'bg-blue-100'">
+              <mat-icon [class]="member.gender === 'female' ? 'text-pink-500' : 'text-blue-500'">
+                {{ member.gender === 'female' ? 'face_3' : 'face' }}
+              </mat-icon>
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-[#3a3b45] text-sm truncate">{{ member.fullName }}</p>
+              <p class="text-xs text-[#858796]">
+                {{ genderLabel(member.gender) }}
+                &nbsp;·&nbsp;{{ age(member.dateOfBirth) }} tuổi
+                &nbsp;·&nbsp;{{ relationshipLabel(member.relationship) }}
+              </p>
+            </div>
+
+            <!-- Actions -->
+            <button mat-icon-button color="warn"
+              [disabled]="removingId() === member.id"
+              (click)="removeMember(member)"
+              matTooltip="Xóa thành viên">
+              @if (removingId() === member.id) {
+                <mat-spinner diameter="20" />
+              } @else {
+                <mat-icon>delete_outline</mat-icon>
+              }
+            </button>
+
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+</div>

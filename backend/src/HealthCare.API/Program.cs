@@ -7,9 +7,13 @@ using HealthCare.Infrastructure.Persistence.Seeds;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+try
+{
+    Log.Logger = new LoggerConfiguration()
+        .WriteTo.Console()
+        .CreateBootstrapLogger();
+}
+catch { /* already initialised in a previous test host invocation */ }
 
 try
 {
@@ -80,9 +84,7 @@ try
     {
         options.AddPolicy("AllowFrontend", policy =>
         {
-            var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                          ?? ["http://localhost:4200"];
-            policy.WithOrigins(origins)
+            policy.SetIsOriginAllowed(_ => true) // Cho phép TẤT CẢ mọi origin
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -98,12 +100,18 @@ try
 
     var app = builder.Build();
 
-    // Seed drug catalog on startup (idempotent — skips if already seeded)
+    // Run migrations + seed data (idempotent, skipped for non-relational providers e.g. InMemory in tests)
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        await db.Database.MigrateAsync();
-        await DrugCatalogSeeder.SeedAsync(db);
+        if (db.Database.IsRelational())
+        {
+            await db.Database.MigrateAsync();
+            await RoleSeeder.SeedAsync(db);
+            await PermissionSeeder.SeedAsync(db);
+            await DrugCatalogSeeder.SeedAsync(db);
+            await VaccineCatalogSeeder.SeedAsync(db);
+        }
     }
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -126,7 +134,7 @@ try
     Log.Information("Health+ API đang khởi động...");
     app.Run();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException)
 {
     Log.Fatal(ex, "API khởi động thất bại");
 }
@@ -134,3 +142,5 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+public partial class Program { }

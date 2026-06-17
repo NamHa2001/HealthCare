@@ -26,6 +26,7 @@ export class SidebarComponent {
     { label: 'Thuốc', icon: 'medication', route: '/medications' },
     { label: 'Quét đơn thuốc', icon: 'document_scanner', route: '/ocr' },
     { label: 'Nhắc lịch', icon: 'notifications', route: '/reminders' },
+    { label: 'Phân tích', icon: 'bar_chart', route: '/analytics' },
     { label: 'Gia đình', icon: 'group', route: '/family' },
   ];
 

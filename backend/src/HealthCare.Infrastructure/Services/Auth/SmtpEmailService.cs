@@ -27,6 +27,34 @@ public class SmtpEmailService : IEmailService
             ct);
     }
 
+    public async Task SendReminderAsync(string toEmail, string title, string body, CancellationToken ct = default)
+    {
+        await SendAsync(toEmail, $"[Health+] {title}",
+            $"<p>{body}</p><p><small>Được gửi bởi Health+ Reminder Engine</small></p>",
+            ct);
+    }
+
+    public async Task SendAccountLockedAsync(string toEmail, string name, CancellationToken ct = default)
+    {
+        await SendAsync(toEmail, "Tài khoản bị khóa tạm thời — Health+",
+            $"<p>Xin chào {name},</p>" +
+            $"<p>Tài khoản của bạn đã bị <strong>khóa 24 giờ</strong> do đăng nhập sai quá 10 lần liên tiếp.</p>" +
+            $"<p>Nếu không phải bạn thực hiện, hãy đổi mật khẩu ngay sau khi mở khóa.</p>" +
+            $"<p><small>Health+ Security Team</small></p>",
+            ct);
+    }
+
+    public async Task SendFamilyInviteAsync(string toEmail, string inviterName, string groupName, string token, CancellationToken ct = default)
+    {
+        var link = $"{_config["App:FrontendUrl"]}/family/accept-invite?token={token}";
+        await SendAsync(toEmail, $"{inviterName} mời bạn vào nhóm gia đình — Health+",
+            $"<p>Xin chào,</p>" +
+            $"<p><strong>{inviterName}</strong> đã mời bạn tham gia nhóm gia đình <strong>{groupName}</strong> trên Health+.</p>" +
+            $"<p><a href='{link}'>Chấp nhận lời mời</a> (có hiệu lực trong 7 ngày).</p>" +
+            $"<p>Nếu bạn chưa có tài khoản, hãy đăng ký tại <a href='{_config["App:FrontendUrl"]}/auth/register'>đây</a> trước.</p>",
+            ct);
+    }
+
     private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken ct)
     {
         var message = new MimeMessage();

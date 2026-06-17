@@ -1,0 +1,102 @@
+<div>
+  <div class="mb-6 flex items-center justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Quản lý người dùng</h1>
+      <p class="text-sm text-[#858796] mt-1">{{ store.usersTotal() }} người dùng</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="sb-card mb-4">
+    <div class="px-5 py-3 flex gap-3 flex-wrap items-center">
+      <input
+        type="search"
+        class="flex-1 min-w-[200px] border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#4e73df]"
+        placeholder="Tìm theo email hoặc tên..."
+        [value]="searchTerm()"
+        (input)="onSearch($any($event.target).value)" />
+
+      <select
+        class="border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#4e73df]"
+        (change)="onFilterChange($any($event.target).value)">
+        <option value="">Tất cả trạng thái</option>
+        <option value="true">Đang hoạt động</option>
+        <option value="false">Đã khoá</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="sb-card overflow-hidden">
+    @if (store.loading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="36" /></div>
+    } @else if (store.users().length === 0) {
+      <app-empty-state icon="group" title="Không tìm thấy người dùng" subtitle="Thử thay đổi bộ lọc tìm kiếm" />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-[#f8f9fc] border-b border-gray-100">
+            <tr>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Người dùng</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Email</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Roles</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Đăng nhập cuối</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Trạng thái</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of store.users(); track u.id; let odd = $odd) {
+              <tr class="border-b border-gray-50" [class.bg-[#f8f9fc]]="odd">
+                <td class="px-5 py-3">
+                  <div class="font-semibold text-[#5a5c69]">{{ u.firstName }} {{ u.lastName }}</div>
+                  <div class="text-xs text-[#b7b9cc]">{{ u.createdAt | date:'dd/MM/yyyy' }}</div>
+                </td>
+                <td class="px-5 py-3 text-[#858796]">{{ u.email }}</td>
+                <td class="px-5 py-3">
+                  @for (r of u.roles; track r) {
+                    <span class="badge-info mr-1">{{ r }}</span>
+                  }
+                </td>
+                <td class="px-5 py-3 text-[#858796]">
+                  {{ u.lastLoginAt ? (u.lastLoginAt | date:'dd/MM HH:mm') : '—' }}
+                </td>
+                <td class="px-5 py-3">
+                  @if (!u.isActive) {
+                    <span class="badge-danger">Khoá</span>
+                  } @else if (!u.isEmailVerified) {
+                    <span class="badge-warning">Chưa xác thực</span>
+                  } @else {
+                    <span class="badge-success">Hoạt động</span>
+                  }
+                </td>
+                <td class="px-5 py-3">
+                  <button mat-icon-button
+                          [title]="u.isActive ? 'Khoá tài khoản' : 'Mở khoá'"
+                          (click)="onToggle(u)">
+                    <mat-icon class="text-sm" [class.text-red-400]="u.isActive" [class.text-green-500]="!u.isActive">
+                      {{ u.isActive ? 'lock' : 'lock_open' }}
+                    </mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between px-5 py-3 border-t border-gray-50">
+        <span class="text-xs text-[#858796]">Trang {{ store.usersPage() }} / {{ totalPages }}</span>
+        <div class="flex gap-2">
+          <button mat-icon-button [disabled]="store.usersPage() <= 1" (click)="onPageChange(-1)">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="store.usersPage() >= totalPages" (click)="onPageChange(1)">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,93 @@
+<div>
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Lịch sử tiêm chủng</h1>
+      <p class="text-sm text-[#858796] mt-1">Quản lý toàn bộ lịch sử tiêm vắc-xin</p>
+    </div>
+    <div class="flex gap-2">
+      <button mat-stroked-button routerLink="/vaccines/progress">
+        <mat-icon>bar_chart</mat-icon> Tiến độ
+      </button>
+      <button mat-stroked-button color="accent"
+        [disabled]="downloading()"
+        (click)="downloadPassport()"
+        matTooltip="Tải Vaccine Passport dạng PDF">
+        @if (downloading()) {
+          <mat-spinner diameter="18" class="inline-block mr-1" />
+        } @else {
+          <mat-icon>picture_as_pdf</mat-icon>
+        }
+        Passport PDF
+      </button>
+      <button mat-raised-button color="primary" routerLink="/vaccines/add">
+        <mat-icon>add</mat-icon> Thêm mũi tiêm
+      </button>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="sb-card">
+    @if (store.loading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+    } @else if (store.records().length === 0) {
+      <div class="text-center py-12 text-[#858796]">
+        <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">vaccines</mat-icon>
+        <p>Chưa có bản ghi tiêm chủng nào.</p>
+        <button mat-raised-button color="primary" class="mt-4" routerLink="/vaccines/add">
+          Thêm mũi tiêm đầu tiên
+        </button>
+      </div>
+    } @else {
+      @for (r of store.records(); track r.id; let last = $last) {
+        <div class="flex items-start px-5 py-4 hover:bg-[#f8f9fc] transition-colors"
+             [class.border-b]="!last" [class.border-gray-100]="!last">
+
+          <!-- Icon -->
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 shrink-0"
+               [class.bg-red-100]="r.status === 'overdue'"
+               [class.bg-yellow-100]="r.status === 'upcoming'"
+               [class.bg-green-100]="r.status === 'completed'"
+               [class.bg-blue-100]="r.status === 'scheduled'">
+            <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem"
+                      [class.text-red-500]="r.status === 'overdue'"
+                      [class.text-yellow-600]="r.status === 'upcoming'"
+                      [class.text-green-600]="r.status === 'completed'"
+                      [class.text-blue-500]="r.status === 'scheduled'">vaccines</mat-icon>
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <h3 class="font-bold text-[#5a5c69]">{{ r.vaccineName }}</h3>
+              <span class="text-xs text-[#858796]">Mũi {{ r.doseNumber }}</span>
+              <span [class]="statusBadge(r).cls">{{ statusBadge(r).label }}</span>
+            </div>
+            <div class="flex flex-wrap gap-x-4 text-xs text-[#858796]">
+              <span>Ngày tiêm: {{ r.injectionDate | date:'dd/MM/yyyy' }}</span>
+              @if (r.nextDueDate) {
+                <span [class.text-red-500]="r.status === 'overdue'"
+                      [class.text-yellow-600]="r.status === 'upcoming'">
+                  Mũi tiếp: {{ r.nextDueDate | date:'dd/MM/yyyy' }}
+                </span>
+              }
+              @if (r.facility) {
+                <span>{{ r.facility }}</span>
+              }
+            </div>
+            @if (r.reaction) {
+              <p class="text-xs text-orange-500 mt-1">Phản ứng: {{ r.reaction }}</p>
+            }
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-1 ml-2 shrink-0">
+            <button mat-icon-button matTooltip="Xóa" color="warn" (click)="delete(r, $event)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

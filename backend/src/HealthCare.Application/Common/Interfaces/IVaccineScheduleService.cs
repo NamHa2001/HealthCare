@@ -2,5 +2,5 @@
 
 public interface IVaccineScheduleService
 {
-    Task<DateTime?> CalculateNextDueDateAsync(Guid vaccineCatalogId, int doseNumber, DateTime lastDoseDate, CancellationToken ct = default);
+    Task<DateOnly?> CalculateNextDueDateAsync(Guid vaccineCatalogId, int doseNumber, DateOnly lastInjectionDate, CancellationToken ct = default);
 }

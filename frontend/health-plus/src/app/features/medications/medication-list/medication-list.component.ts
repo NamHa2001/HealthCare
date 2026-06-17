@@ -56,6 +56,6 @@ export class MedicationListComponent implements OnInit {
     if (!med.endDate) return { label: 'Không xác định', cls: 'badge-info' };
     return new Date(med.endDate) >= new Date()
       ? { label: 'Đang dùng', cls: 'badge-success' }
-      : { label: 'Đã hoàn thành', cls: 'badge-secondary' };
+      : { label: 'Đã hoàn thành', cls: 'badge-neutral' };
   }
 }

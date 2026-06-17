@@ -1,9 +1,13 @@
 ﻿using HealthCare.Application.Common.Interfaces;
 using HealthCare.Domain.Common;
+using HealthCare.Domain.Entities.Audit;
 using HealthCare.Domain.Entities.Auth;
+using HealthCare.Domain.Entities.Family;
 using HealthCare.Domain.Entities.HealthProfile;
 using HealthCare.Domain.Entities.MedicalHistory;
 using HealthCare.Domain.Entities.Medications;
+using HealthCare.Domain.Entities.Notifications;
+using HealthCare.Domain.Entities.Vaccines;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthCare.Infrastructure.Persistence;
@@ -12,6 +16,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+    public DbSet<FamilyGroup> FamilyGroups => Set<FamilyGroup>();
+    public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
+    public DbSet<FamilyInvitation> FamilyInvitations => Set<FamilyInvitation>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Permission> Permissions => Set<Permission>();
@@ -29,6 +36,13 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Medication> Medications => Set<Medication>();
     public DbSet<MedicationSchedule> MedicationSchedules => Set<MedicationSchedule>();
     public DbSet<MedicationLog> MedicationLogs => Set<MedicationLog>();
+    public DbSet<VaccineCatalog> VaccineCatalog => Set<VaccineCatalog>();
+    public DbSet<VaccineScheduleRule> VaccineScheduleRules => Set<VaccineScheduleRule>();
+    public DbSet<VaccineRecord> VaccineRecords => Set<VaccineRecord>();
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
+    public DbSet<Reminder> Reminders => Set<Reminder>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

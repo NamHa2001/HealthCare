@@ -36,6 +36,7 @@ public class User : AuditableEntity
     public void VerifyEmail() => IsEmailVerified = true;
     public void RecordLogin() => LastLoginAt = DateTime.UtcNow;
     public void Deactivate() => IsActive = false;
+    public void Activate() => IsActive = true;
     public void UpdatePassword(string newHash) => PasswordHash = newHash;
     public bool IsLockedOut() =>
     LockedUntil.HasValue && LockedUntil.Value > DateTime.UtcNow;
@@ -55,4 +56,11 @@ public class User : AuditableEntity
         LockedUntil = null;
     }
 
+    public void UpdateProfile(string firstName, string lastName, string? phoneNumber)
+    {
+        FirstName = firstName;
+        LastName = lastName;
+        PhoneNumber = phoneNumber;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

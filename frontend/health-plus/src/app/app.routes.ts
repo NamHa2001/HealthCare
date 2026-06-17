@@ -45,10 +45,22 @@ export const routes: Routes = [
         title: 'Lịch sử khám — Health+',
       },
       {
+        path: 'vaccines',
+        loadChildren: () =>
+          import('./features/vaccines/vaccines.routes').then(m => m.VACCINES_ROUTES),
+        title: 'Vắc-xin — Health+',
+      },
+      {
         path: 'medications',
         loadChildren: () =>
           import('./features/medications/medications.routes').then(m => m.MEDICATIONS_ROUTES),
         title: 'Thuốc — Health+',
+      },
+      {
+        path: 'reminders',
+        loadChildren: () =>
+          import('./features/reminders/reminders.routes').then(m => m.REMINDERS_ROUTES),
+        title: 'Nhắc lịch — Health+',
       },
       {
         path: 'ocr',
@@ -57,9 +69,27 @@ export const routes: Routes = [
         title: 'Quét đơn thuốc — Health+',
       },
       {
+        path: 'analytics',
+        loadChildren: () =>
+          import('./features/analytics/analytics.routes').then(m => m.ANALYTICS_ROUTES),
+        title: 'Phân tích — Health+',
+      },
+      {
+        path: 'family',
+        loadChildren: () =>
+          import('./features/family/family.routes').then(m => m.FAMILY_ROUTES),
+        title: 'Gia đình — Health+',
+      },
+      {
+        path: 'settings',
+        loadChildren: () =>
+          import('./features/settings/settings.routes').then(m => m.SETTINGS_ROUTES),
+        title: 'Cài đặt — Health+',
+      },
+      {
         path: 'admin',
-        loadComponent: () =>
-          import('./features/admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
+        loadChildren: () =>
+          import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES),
         canActivate: [adminGuard],
         title: 'Quản trị — Health+',
       },

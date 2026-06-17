@@ -49,6 +49,7 @@ public class ExceptionHandlingMiddleware
             NotFoundException nfe => (HttpStatusCode.NotFound, "NOT_FOUND", nfe.Message, (List<ApiErrorDetail>?)null),
             ForbiddenException fe => (HttpStatusCode.Forbidden, "FORBIDDEN", fe.Message, null),
             ConflictException ce => (HttpStatusCode.Conflict, "CONFLICT", ce.Message, null),
+            BadRequestException bre => (HttpStatusCode.BadRequest, "BAD_REQUEST", bre.Message, null),
             _ => (HttpStatusCode.InternalServerError, "INTERNAL_ERROR", "Đã xảy ra lỗi.", null)
         };
 

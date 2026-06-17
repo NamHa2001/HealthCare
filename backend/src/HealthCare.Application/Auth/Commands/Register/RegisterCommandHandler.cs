@@ -2,6 +2,7 @@
 using HealthCare.Application.Common.Interfaces;
 using HealthCare.Application.Common.Models;
 using HealthCare.Domain.Entities.Auth;
+using HealthCare.Domain.Entities.HealthProfile;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Gu
         var user = User.Create(request.Email, hash, request.FirstName, request.LastName);
 
         _db.Users.Add(user);
+
+        // SRS §1.1: Tự động tạo hồ sơ sức khỏe rỗng
+        _db.HealthProfiles.Add(HealthProfile.CreateForUser(user.Id));
 
         var token = Guid.NewGuid().ToString("N");
         var verification = EmailVerification.Create(user.Id, token);

@@ -22,6 +22,65 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("HealthCare.Domain.Entities.Audit.AuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<string>("NewValueHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("OldValueHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Resource")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid?>("TargetUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TargetUserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("AuditLogs", (string)null);
+                });
+
             modelBuilder.Entity("HealthCare.Domain.Entities.Auth.EmailVerification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -278,6 +337,132 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                     b.ToTable("UserRoles");
                 });
 
+            modelBuilder.Entity("HealthCare.Domain.Entities.Family.FamilyGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AdminId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminId");
+
+                    b.ToTable("FamilyGroups");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Family.FamilyInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("FamilyGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("InvitedEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsAccepted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FamilyGroupId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("FamilyInvitations");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Family.FamilyMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("FamilyGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<Guid?>("ManagedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Relationship")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FamilyGroupId");
+
+                    b.HasIndex("ManagedBy");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FamilyMembers");
+                });
+
             modelBuilder.Entity("HealthCare.Domain.Entities.HealthProfile.BloodPressureLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -485,6 +670,8 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FamilyMemberId");
 
                     b.HasIndex("UserId");
 
@@ -800,6 +987,293 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                     b.ToTable("MedicationSchedules", (string)null);
                 });
 
+            modelBuilder.Entity("HealthCare.Domain.Entities.Notifications.NotificationPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("EmailEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("FollowupReminder")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HealthAlert")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("MedicationReminder")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PushEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeOnly>("QuietEndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("QuietStartTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Timezone")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Asia/Ho_Chi_Minh");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("VaccineReminder")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("NotificationPreferences", (string)null);
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Notifications.PushSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeviceType")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("FcmToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsActive");
+
+                    b.ToTable("PushSubscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Notifications.Reminder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("HealthProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ReferenceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("RemindAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReminderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("pending");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("RemindAt", "Status");
+
+                    b.ToTable("Reminders", (string)null);
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Vaccines.VaccineCatalog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("AgeStartMonths")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DiseasesCovered")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortName")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TotalDoses")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VaccineCatalog", (string)null);
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Vaccines.VaccineRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdministeredBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DoseNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Facility")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("HealthProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("InjectionDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("LotNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateOnly?>("NextDueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Reaction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("VaccineCatalogId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VaccineName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VaccineCatalogId");
+
+                    b.HasIndex("HealthProfileId", "InjectionDate");
+
+                    b.ToTable("VaccineRecords", (string)null);
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Vaccines.VaccineScheduleRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DoseNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaxAgeMonths")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MinAgeMonths")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MinIntervalDays")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RecommendedIntervalDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("VaccineCatalogId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VaccineCatalogId", "DoseNumber")
+                        .IsUnique();
+
+                    b.ToTable("VaccineScheduleRules", (string)null);
+                });
+
             modelBuilder.Entity("HealthCare.Domain.Entities.Auth.EmailVerification", b =>
                 {
                     b.HasOne("HealthCare.Domain.Entities.Auth.User", "User")
@@ -860,6 +1334,45 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HealthCare.Domain.Entities.Family.FamilyGroup", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.Auth.User", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Family.FamilyInvitation", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.Family.FamilyGroup", "FamilyGroup")
+                        .WithMany()
+                        .HasForeignKey("FamilyGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FamilyGroup");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Family.FamilyMember", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.Family.FamilyGroup", null)
+                        .WithMany("Members")
+                        .HasForeignKey("FamilyGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HealthCare.Domain.Entities.Auth.User", null)
+                        .WithMany()
+                        .HasForeignKey("ManagedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("HealthCare.Domain.Entities.Auth.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("HealthCare.Domain.Entities.HealthProfile.BloodPressureLog", b =>
                 {
                     b.HasOne("HealthCare.Domain.Entities.HealthProfile.HealthProfile", "HealthProfile")
@@ -895,6 +1408,11 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("HealthCare.Domain.Entities.HealthProfile.HealthProfile", b =>
                 {
+                    b.HasOne("HealthCare.Domain.Entities.Family.FamilyMember", null)
+                        .WithMany()
+                        .HasForeignKey("FamilyMemberId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("HealthCare.Domain.Entities.Auth.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -978,6 +1496,68 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                     b.Navigation("Medication");
                 });
 
+            modelBuilder.Entity("HealthCare.Domain.Entities.Notifications.NotificationPreference", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.Auth.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Notifications.PushSubscription", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.Auth.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Notifications.Reminder", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.Auth.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Vaccines.VaccineRecord", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.HealthProfile.HealthProfile", "HealthProfile")
+                        .WithMany()
+                        .HasForeignKey("HealthProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HealthCare.Domain.Entities.Vaccines.VaccineCatalog", "VaccineCatalog")
+                        .WithMany()
+                        .HasForeignKey("VaccineCatalogId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("HealthProfile");
+
+                    b.Navigation("VaccineCatalog");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Vaccines.VaccineScheduleRule", b =>
+                {
+                    b.HasOne("HealthCare.Domain.Entities.Vaccines.VaccineCatalog", "VaccineCatalog")
+                        .WithMany("ScheduleRules")
+                        .HasForeignKey("VaccineCatalogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VaccineCatalog");
+                });
+
             modelBuilder.Entity("HealthCare.Domain.Entities.Auth.Role", b =>
                 {
                     b.Navigation("RolePermissions");
@@ -986,6 +1566,11 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("HealthCare.Domain.Entities.Auth.User", b =>
                 {
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Family.FamilyGroup", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("HealthCare.Domain.Entities.HealthProfile.HealthProfile", b =>
@@ -1010,6 +1595,11 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("HealthCare.Domain.Entities.Medications.MedicationSchedule", b =>
                 {
                     b.Navigation("Logs");
+                });
+
+            modelBuilder.Entity("HealthCare.Domain.Entities.Vaccines.VaccineCatalog", b =>
+                {
+                    b.Navigation("ScheduleRules");
                 });
 #pragma warning restore 612, 618
         }

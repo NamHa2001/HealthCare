@@ -42,6 +42,11 @@ public class HealthProfileConfiguration : IEntityTypeConfiguration<HealthProfile
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne<Domain.Entities.Family.FamilyMember>()
+            .WithMany()
+            .HasForeignKey(p => p.FamilyMemberId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasMany(p => p.Measurements)
             .WithOne(m => m.HealthProfile)
             .HasForeignKey(m => m.HealthProfileId)

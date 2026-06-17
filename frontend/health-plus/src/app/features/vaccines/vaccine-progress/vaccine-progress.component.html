@@ -1,0 +1,64 @@
+<div>
+  <div class="mb-6 flex items-center gap-3">
+    <button mat-icon-button routerLink="/vaccines">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Tiến độ tiêm chủng</h1>
+      <p class="text-sm text-[#858796]">Theo dõi chương trình tiêm chủng bắt buộc (TCMR)</p>
+    </div>
+  </div>
+
+  @if (store.loading()) {
+    <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+  } @else if (store.progress().length === 0) {
+    <div class="sb-card text-center py-12 text-[#858796]">
+      <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">vaccines</mat-icon>
+      <p>Chưa có dữ liệu tiêm chủng.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-4">
+      @for (p of store.progress(); track p.vaccineCatalogId) {
+        <div class="sb-card p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-[#5a5c69]">{{ p.vaccineName }}</h3>
+              <span class="text-xs text-[#858796]">
+                {{ p.dosesCompleted }}/{{ p.totalDoses }} mũi
+              </span>
+            </div>
+            <div class="text-right">
+              @if (p.isOverdue) {
+                <span class="badge-danger">Quá hạn</span>
+              } @else if (p.nextDueDate) {
+                <span class="text-xs text-[#858796]">
+                  Tiếp theo: {{ p.nextDueDate | date:'dd/MM/yyyy' }}
+                </span>
+              } @else if (p.dosesCompleted >= p.totalDoses) {
+                <span class="badge-success">Hoàn thành</span>
+              }
+            </div>
+          </div>
+
+          <mat-progress-bar
+            mode="determinate"
+            [value]="progressPercent(p.dosesCompleted, p.totalDoses) * 100"
+            [color]="p.isOverdue ? 'warn' : 'primary'"
+            class="mb-3">
+          </mat-progress-bar>
+
+          @if (p.records.length > 0) {
+            <div class="flex flex-wrap gap-2 mt-2">
+              @for (r of p.records; track r.id) {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#4e73df]/10 text-[#4e73df] text-xs">
+                  <mat-icon style="font-size:0.75rem;width:0.75rem;height:0.75rem">check_circle</mat-icon>
+                  Mũi {{ r.doseNumber }} — {{ r.injectionDate | date:'dd/MM/yyyy' }}
+                </span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

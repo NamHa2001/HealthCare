@@ -22,6 +22,11 @@
     <Folder Include="Filters\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="keys\jwt_private.pem" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="keys\jwt_public.pem" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>

@@ -1,0 +1,73 @@
+<div>
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#5a5c69]">Nhật ký hoạt động</h1>
+    <p class="text-sm text-[#858796] mt-1">{{ store.auditLogsTotal() }} bản ghi</p>
+  </div>
+
+  <!-- Filter -->
+  <div class="sb-card mb-4">
+    <div class="px-5 py-3 flex gap-3 flex-wrap items-center">
+      <label class="text-xs font-bold text-[#858796] uppercase">Tài nguyên:</label>
+      <select
+        class="border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#4e73df]"
+        (change)="onResourceChange($any($event.target).value)">
+        @for (r of resources; track r) {
+          <option [value]="r">{{ r || 'Tất cả' }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="sb-card overflow-hidden">
+    @if (store.loading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="36" /></div>
+    } @else if (store.auditLogs().length === 0) {
+      <app-empty-state icon="history" title="Không có bản ghi nào" subtitle="Thử thay đổi bộ lọc" />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-[#f8f9fc] border-b border-gray-100">
+            <tr>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Thời gian</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Loại sự kiện</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Tài nguyên</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Hành động</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">Người dùng</th>
+              <th class="text-left text-xs font-bold text-[#858796] uppercase px-5 py-3">IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of store.auditLogs(); track log.id; let odd = $odd) {
+              <tr class="border-b border-gray-50" [class.bg-[#f8f9fc]]="odd">
+                <td class="px-5 py-3 text-xs text-[#858796] whitespace-nowrap">
+                  {{ log.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
+                </td>
+                <td class="px-5 py-3">
+                  <span [class]="eventTypeClass(log.eventType)">{{ log.eventType }}</span>
+                </td>
+                <td class="px-5 py-3 text-[#5a5c69] font-medium">{{ log.resource }}</td>
+                <td class="px-5 py-3 text-[#858796]">{{ log.action }}</td>
+                <td class="px-5 py-3 text-xs text-[#858796]">{{ log.userEmail ?? '—' }}</td>
+                <td class="px-5 py-3 text-xs text-[#b7b9cc] font-mono">{{ log.ipAddress ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between px-5 py-3 border-t border-gray-50">
+        <span class="text-xs text-[#858796]">Trang {{ store.auditLogsPage() }} / {{ totalPages }}</span>
+        <div class="flex gap-2">
+          <button mat-icon-button [disabled]="store.auditLogsPage() <= 1" (click)="onPageChange(-1)">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="store.auditLogsPage() >= totalPages" (click)="onPageChange(1)">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
