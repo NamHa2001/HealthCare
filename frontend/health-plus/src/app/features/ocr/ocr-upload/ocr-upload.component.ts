@@ -53,15 +53,25 @@ export class OcrUploadComponent {
   }
 
   private setFile(file: File): void {
-    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      this.errorMsg.set('Chỉ chấp nhận ảnh (JPEG, PNG) hoặc PDF.');
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
+    const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'pdf'];
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+
+    // file.type có thể rỗng trên một số thiết bị mobile/camera
+    const typeOk = file.type ? allowedTypes.includes(file.type) : false;
+    const extOk = allowedExts.includes(ext);
+
+    if (!typeOk && !extOk) {
+      this.errorMsg.set('Chỉ chấp nhận ảnh (JPEG, PNG, WebP) hoặc PDF.');
       return;
     }
+
     this.selectedFile.set(file);
     this.errorMsg.set(null);
     this.state.set('idle');
 
-    if (file.type.startsWith('image/')) {
+    const isImage = file.type ? file.type.startsWith('image/') : allowedExts.filter(e => e !== 'pdf').includes(ext);
+    if (isImage) {
       const reader = new FileReader();
       reader.onload = () => this.preview.set(reader.result as string);
       reader.readAsDataURL(file);

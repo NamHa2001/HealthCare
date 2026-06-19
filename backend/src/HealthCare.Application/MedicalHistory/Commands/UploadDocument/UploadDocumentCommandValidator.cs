@@ -8,7 +8,9 @@ public class UploadDocumentCommandValidator : AbstractValidator<UploadDocumentCo
     [
         "application/pdf",
         "image/jpeg",
+        "image/jpg",   // alias gửi bởi một số trình duyệt mobile
         "image/png",
+        "image/webp",  // Android camera thường capture WebP
         "image/heic",
         "image/heif"
     ];
@@ -22,7 +24,7 @@ public class UploadDocumentCommandValidator : AbstractValidator<UploadDocumentCo
 
         RuleFor(x => x.ContentType)
             .Must(ct => AllowedMimeTypes.Contains(ct))
-            .WithMessage("Chỉ chấp nhận file PDF, JPG, PNG hoặc HEIC.");
+            .WithMessage("Chỉ chấp nhận file PDF, JPG, PNG, WebP hoặc HEIC.");
 
         RuleFor(x => x.FileSizeBytes)
             .GreaterThan(0).WithMessage("File không được rỗng.")

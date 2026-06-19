@@ -105,7 +105,7 @@
   <!-- Hidden inputs -->
   <input #fileInput type="file" accept="image/jpeg,image/png,application/pdf"
     class="hidden" (change)="onFileSelected($event)" />
-  <input #cameraInput type="file" accept="image/*" capture="environment"
+  <input #cameraInput type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment"
     class="hidden" (change)="onFileSelected($event)" />
 
   <!-- Instructions -->
