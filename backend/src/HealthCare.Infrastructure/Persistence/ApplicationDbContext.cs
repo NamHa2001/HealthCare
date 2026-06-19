@@ -9,6 +9,7 @@ using HealthCare.Domain.Entities.Medications;
 using HealthCare.Domain.Entities.Notifications;
 using HealthCare.Domain.Entities.Vaccines;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HealthCare.Infrastructure.Persistence;
 
@@ -47,6 +48,29 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        // SQL Server lưu DateTime không có timezone info. EF Core đọc lại trả Kind=Unspecified
+        // → System.Text.Json serialize không có "Z" → Angular DatePipe hiểu là local time → sai 7h (UTC+7).
+        // Fix: global converter đảm bảo mọi DateTime đọc từ DB đều là Kind=Utc.
+        var utcConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        var utcNullableConverter = new ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue ? v.Value.ToUniversalTime() : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : null);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                    property.SetValueConverter(utcConverter);
+                else if (property.ClrType == typeof(DateTime?))
+                    property.SetValueConverter(utcNullableConverter);
+            }
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 

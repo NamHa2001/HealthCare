@@ -57,14 +57,16 @@ export class MedicationScheduleComponent implements OnInit {
     if (this.form.invalid || !this.medication()) return;
     this.saving.set(true);
     try {
+      const medicationId = this.medication()!.id;
       const raw = this.form.getRawValue();
-      await this.store.addSchedule(this.medication()!.id, {
-        scheduledTime: raw.scheduledTime + ':00', // ensure HH:mm:ss
+      await this.store.addSchedule(medicationId, {
+        scheduledTime: raw.scheduledTime + ':00',
         dosageAmount: raw.dosageAmount || null,
         reminderEnabled: raw.reminderEnabled,
         reminderMinutesBefore: Number(raw.reminderMinutesBefore),
       });
-      // Reset time to default for next entry
+      // Đọc lại từ store sau khi store đã cập nhật để danh sách hiện lịch mới
+      this.medication.set(this.store.medications().find(m => m.id === medicationId) ?? null);
       this.form.patchValue({ scheduledTime: '08:00', dosageAmount: '' });
     } finally {
       this.saving.set(false);
