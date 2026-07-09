@@ -12,6 +12,9 @@ public class MedicationScheduleConfiguration : IEntityTypeConfiguration<Medicati
 
         builder.HasKey(x => x.Id);
 
+        // Khớp query filter soft-delete của Medication (required end của quan hệ)
+        builder.HasQueryFilter(x => x.Medication.DeletedAt == null);
+
         builder.Property(x => x.ScheduledTime)
             .HasColumnType("time");
 

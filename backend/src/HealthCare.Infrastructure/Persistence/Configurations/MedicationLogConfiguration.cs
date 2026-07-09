@@ -13,6 +13,9 @@ public class MedicationLogConfiguration : IEntityTypeConfiguration<MedicationLog
 
         builder.HasKey(x => x.Id);
 
+        // Khớp query filter soft-delete của Medication (qua MedicationSchedule)
+        builder.HasQueryFilter(x => x.MedicationSchedule.Medication.DeletedAt == null);
+
         builder.Property(x => x.Status)
             .HasConversion<string>()
             .HasMaxLength(20)

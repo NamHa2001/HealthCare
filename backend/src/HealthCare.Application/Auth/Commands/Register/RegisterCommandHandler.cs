@@ -32,6 +32,11 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Gu
 
         _db.Users.Add(user);
 
+        // SRS §1.5: Gán role mặc định 'user'
+        var userRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "user", ct);
+        if (userRole is not null)
+            _db.UserRoles.Add(UserRole.Create(user.Id, userRole.Id));
+
         // SRS §1.1: Tự động tạo hồ sơ sức khỏe rỗng
         _db.HealthProfiles.Add(HealthProfile.CreateForUser(user.Id));
 

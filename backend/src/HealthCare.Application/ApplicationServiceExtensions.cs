@@ -10,7 +10,7 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddAutoMapper(typeof(MappingProfile).Assembly);
+        services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 
         services.AddValidatorsFromAssembly(typeof(ApplicationServiceExtensions).Assembly);
 
