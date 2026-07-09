@@ -5,6 +5,7 @@ using HealthCare.Domain.Entities.HealthProfile;
 using HealthCare.Domain.Entities.MedicalHistory;
 using HealthCare.Domain.Entities.Medications;
 using HealthCare.Domain.Entities.Notifications;
+using HealthCare.Domain.Entities.Sharing;
 using HealthCare.Domain.Entities.Vaccines;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,5 +40,6 @@ public interface IApplicationDbContext
     DbSet<PushSubscription> PushSubscriptions { get; }
     DbSet<Reminder> Reminders { get; }
     DbSet<AuditLog> AuditLogs { get; }
+    DbSet<ShareGrant> ShareGrants { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

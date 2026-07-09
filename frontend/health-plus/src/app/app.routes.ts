@@ -19,6 +19,14 @@ export const routes: Routes = [
       import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES),
   },
 
+  // Trang public: xem hồ sơ được chia sẻ qua token — KHÔNG cần đăng nhập
+  {
+    path: 'shared/:token',
+    loadComponent: () =>
+      import('./features/sharing/shared-viewer/shared-viewer.component').then(m => m.SharedViewerComponent),
+    title: 'Hồ sơ được chia sẻ — Health+',
+  },
+
   // Trang bảo vệ (có sidebar + topbar)
   {
     path: '',
@@ -73,6 +81,12 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/analytics/analytics.routes').then(m => m.ANALYTICS_ROUTES),
         title: 'Phân tích — Health+',
+      },
+      {
+        path: 'sharing',
+        loadChildren: () =>
+          import('./features/sharing/sharing.routes').then(m => m.SHARING_ROUTES),
+        title: 'Chia sẻ hồ sơ — Health+',
       },
       {
         path: 'family',

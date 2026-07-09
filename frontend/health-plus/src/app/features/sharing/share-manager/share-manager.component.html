@@ -1,0 +1,120 @@
+<div>
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#5a5c69]">Chia sẻ hồ sơ</h1>
+    <p class="text-sm text-[#858796] mt-1">
+      Tạo liên kết có thời hạn để bác sĩ hoặc người thân xem hồ sơ của bạn — không cần tài khoản.
+    </p>
+  </div>
+
+  <!-- Tạo liên kết mới -->
+  <div class="sb-card mb-6 p-5">
+    <h2 class="font-bold text-[#5a5c69] mb-3">Tạo liên kết mới</h2>
+
+    <p class="text-sm text-[#858796] mb-2">Phạm vi dữ liệu được xem:</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      @for (opt of scopeOptions; track opt[0]) {
+        <button
+          class="px-3 py-1 rounded-full text-sm border transition-colors"
+          [class.bg-[#4e73df]]="selectedScopes().has(opt[0])"
+          [class.text-white]="selectedScopes().has(opt[0])"
+          [class.border-[#4e73df]]="selectedScopes().has(opt[0])"
+          [class.border-gray-200]="!selectedScopes().has(opt[0])"
+          [class.text-[#858796]]="!selectedScopes().has(opt[0])"
+          (click)="toggleScope(opt[0])">
+          {{ opt[1] }}
+        </button>
+      }
+    </div>
+
+    <p class="text-sm text-[#858796] mb-2">Thời hạn:</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      @for (t of ttlOptions; track t.value) {
+        <button
+          class="px-3 py-1 rounded-full text-sm border transition-colors"
+          [class.bg-[#1cc88a]]="selectedTtl() === t.value"
+          [class.text-white]="selectedTtl() === t.value"
+          [class.border-[#1cc88a]]="selectedTtl() === t.value"
+          [class.border-gray-200]="selectedTtl() !== t.value"
+          [class.text-[#858796]]="selectedTtl() !== t.value"
+          (click)="selectedTtl.set(t.value)">
+          {{ t.label }}
+        </button>
+      }
+    </div>
+
+    <button mat-raised-button color="primary" [disabled]="creating()" (click)="create()">
+      <mat-icon>link</mat-icon> Tạo liên kết chia sẻ
+    </button>
+
+    <!-- Kết quả: token chỉ hiện 1 lần -->
+    @if (store.lastCreated(); as created) {
+      <div class="mt-5 p-4 rounded-lg border border-[#1cc88a] bg-[#1cc88a]/5">
+        <div class="flex items-center gap-2 text-[#1cc88a] font-bold mb-2">
+          <mat-icon>check_circle</mat-icon> Liên kết đã tạo — lưu lại ngay, mã chỉ hiển thị một lần!
+        </div>
+        <div class="flex flex-col md:flex-row gap-4 items-start">
+          @if (qrDataUrl(); as qr) {
+            <img [src]="qr" alt="QR code" class="rounded border border-gray-200 shrink-0" width="160" height="160" />
+          }
+          <div class="flex-1 min-w-0">
+            <p class="text-xs text-[#858796] mb-1">Đưa mã QR cho bác sĩ quét, hoặc gửi link:</p>
+            <code class="block text-xs bg-white border border-gray-200 rounded p-2 break-all mb-2">{{ shareUrl(created.token) }}</code>
+            <button mat-stroked-button (click)="copyLink(created.token)">
+              <mat-icon>content_copy</mat-icon> Sao chép link
+            </button>
+            <p class="text-xs text-[#858796] mt-2">
+              Hết hạn: {{ created.expiresAt | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Danh sách liên kết -->
+  <div class="sb-card">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h2 class="font-bold text-[#5a5c69]">Liên kết đã tạo</h2>
+    </div>
+    @if (store.loading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+    } @else if (store.grants().length === 0) {
+      <div class="text-center py-12 text-[#858796]">
+        <mat-icon class="block mb-3 text-gray-200" style="font-size:3.5rem;width:3.5rem;height:3.5rem">share_off</mat-icon>
+        <p>Chưa có liên kết chia sẻ nào.</p>
+      </div>
+    } @else {
+      @for (g of store.grants(); track g.id; let last = $last) {
+        <div class="flex items-start px-5 py-4 hover:bg-[#f8f9fc] transition-colors"
+             [class.border-b]="!last" [class.border-gray-100]="!last">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 shrink-0 bg-[#4e73df]/10">
+            <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem" class="text-[#4e73df]">share</mat-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <span [class]="statusOf(g).cls">{{ statusOf(g).label }}</span>
+              <span class="text-xs text-[#858796]">tạo {{ g.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="flex flex-wrap gap-1 mb-1">
+              @for (s of g.scope; track s) {
+                <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-[#5a5c69]">{{ scopeLabel(s) }}</span>
+              }
+            </div>
+            <div class="flex flex-wrap gap-x-4 text-xs text-[#858796]">
+              <span>Hết hạn: {{ g.expiresAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              <span>Lượt xem: {{ g.accessCount }}</span>
+              @if (g.lastAccessedAt) {
+                <span>Xem gần nhất: {{ g.lastAccessedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              }
+            </div>
+          </div>
+          @if (g.isActive) {
+            <button mat-icon-button matTooltip="Thu hồi" color="warn" (click)="revoke(g)">
+              <mat-icon>link_off</mat-icon>
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -7,6 +7,7 @@ using HealthCare.Domain.Entities.HealthProfile;
 using HealthCare.Domain.Entities.MedicalHistory;
 using HealthCare.Domain.Entities.Medications;
 using HealthCare.Domain.Entities.Notifications;
+using HealthCare.Domain.Entities.Sharing;
 using HealthCare.Domain.Entities.Vaccines;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -44,6 +45,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<Reminder> Reminders => Set<Reminder>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<ShareGrant> ShareGrants => Set<ShareGrant>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -4,6 +4,7 @@ using HealthCare.Application;
 using HealthCare.Infrastructure;
 using HealthCare.Infrastructure.Persistence;
 using HealthCare.Infrastructure.Persistence.Seeds;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -93,6 +94,20 @@ try
 
     builder.Services.AddHealthChecks();
 
+    // Rate limit cho endpoints public (link chia sẻ hồ sơ) — 30 req/phút/IP, chống dò token
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddPolicy("shared", httpContext =>
+            System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 30,
+                    Window = TimeSpan.FromMinutes(1)
+                }));
+    });
+
     // Clean Architecture layers
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
@@ -124,6 +139,7 @@ try
     }
 
     app.UseCors("AllowFrontend");
+    app.UseRateLimiter();
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseMiddleware<CurrentUserMiddleware>();
