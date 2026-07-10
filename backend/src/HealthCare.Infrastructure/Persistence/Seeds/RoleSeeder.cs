@@ -13,6 +13,7 @@ public static class RoleSeeder
             Role.Create("family_admin", "Quản lý gia đình"),
             Role.Create("user", "Người dùng"),
             Role.Create("readonly", "Chỉ xem"),
+            Role.Create("doctor", "Bác sĩ đã xác minh"),
         };
 
         foreach (var role in roles)

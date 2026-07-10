@@ -1,0 +1,109 @@
+<div>
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#5a5c69]">Duyệt hồ sơ bác sĩ</h1>
+    <p class="text-sm text-[#858796] mt-1">Kiểm tra chứng chỉ hành nghề trước khi cấp quyền bác sĩ</p>
+  </div>
+
+  <!-- Filter -->
+  <div class="flex flex-wrap gap-2 mb-4">
+    @for (f of filters; track f.value) {
+      <button
+        class="px-3 py-1 rounded-full text-sm border transition-colors"
+        [class.bg-[#4e73df]]="filter() === f.value"
+        [class.text-white]="filter() === f.value"
+        [class.border-[#4e73df]]="filter() === f.value"
+        [class.border-gray-200]="filter() !== f.value"
+        [class.text-[#858796]]="filter() !== f.value"
+        (click)="applyFilter(f.value)">
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <!-- Danh sách -->
+    <div class="sb-card">
+      @if (loading()) {
+        <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+      } @else if (items().length === 0) {
+        <div class="text-center py-12 text-[#858796]">
+          <mat-icon class="block mb-3 text-gray-200 mx-auto" style="font-size:3.5rem;width:3.5rem;height:3.5rem">badge</mat-icon>
+          <p>Không có hồ sơ nào.</p>
+        </div>
+      } @else {
+        @for (item of items(); track item.id; let last = $last) {
+          <button class="w-full text-left flex items-start px-5 py-4 hover:bg-[#f8f9fc] transition-colors"
+                  [class.border-b]="!last" [class.border-gray-100]="!last"
+                  [class.bg-[#f8f9fc]]="detail()?.id === item.id"
+                  (click)="openDetail(item)">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 shrink-0 bg-[#4e73df]/10">
+              <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem" class="text-[#4e73df]">badge</mat-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                <h3 class="font-bold text-[#5a5c69]">{{ item.fullName }}</h3>
+                <span [class]="statusInfo(item.status).cls">{{ statusInfo(item.status).label }}</span>
+              </div>
+              <p class="text-sm text-[#858796]">{{ item.specialty }} — {{ item.workplace }}</p>
+              <p class="text-xs text-[#858796]">CCHN: {{ item.licenseNumber }} · Nộp {{ item.createdAt | date:'dd/MM/yyyy' }}</p>
+            </div>
+          </button>
+        }
+      }
+    </div>
+
+    <!-- Chi tiết -->
+    <div class="sb-card p-5">
+      @if (detailLoading()) {
+        <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+      } @else if (detail(); as d) {
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold text-[#5a5c69]">{{ d.fullName }}</h2>
+          <span [class]="statusInfo(d.status).cls">{{ statusInfo(d.status).label }}</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-1 text-sm text-[#5a5c69] mb-4">
+          <div><span class="text-[#858796]">Email:</span> {{ d.email }}</div>
+          @if (d.phoneNumber) { <div><span class="text-[#858796]">SĐT:</span> {{ d.phoneNumber }}</div> }
+          <div><span class="text-[#858796]">Số CCHN:</span> <strong>{{ d.licenseNumber }}</strong></div>
+          <div><span class="text-[#858796]">Chuyên khoa:</span> {{ d.specialty }}</div>
+          <div><span class="text-[#858796]">Nơi công tác:</span> {{ d.workplace }}</div>
+          @if (d.rejectReason) {
+            <div class="text-[#e74a3b]"><span class="text-[#858796]">Lý do trước đó:</span> {{ d.rejectReason }}</div>
+          }
+        </div>
+
+        <p class="text-sm text-[#858796] mb-2">Ảnh chứng chỉ hành nghề (link hết hạn sau 5 phút):</p>
+        <div class="flex flex-wrap gap-3 mb-5">
+          @for (url of d.licenseDocUrls; track url) {
+            <a [href]="url" target="_blank" rel="noopener" class="block">
+              <img [src]="url" alt="CCHN"
+                   class="h-40 rounded border border-gray-200 object-cover hover:opacity-80 transition-opacity" />
+            </a>
+          }
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          @if (d.status === 'pending') {
+            <button mat-raised-button color="primary" [disabled]="acting()" (click)="approve()">
+              <mat-icon>verified</mat-icon> Duyệt
+            </button>
+            <button mat-stroked-button color="warn" [disabled]="acting()" (click)="reject()">
+              <mat-icon>cancel</mat-icon> Từ chối
+            </button>
+          }
+          @if (d.status === 'approved') {
+            <button mat-stroked-button color="warn" [disabled]="acting()" (click)="suspend()">
+              <mat-icon>block</mat-icon> Tạm ngưng
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="text-center py-12 text-[#858796]">
+          <mat-icon class="block mb-3 text-gray-200 mx-auto" style="font-size:3rem;width:3rem;height:3rem">touch_app</mat-icon>
+          <p>Chọn một hồ sơ để xem chi tiết.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

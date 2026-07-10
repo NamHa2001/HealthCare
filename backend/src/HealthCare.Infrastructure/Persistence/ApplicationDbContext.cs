@@ -2,6 +2,7 @@
 using HealthCare.Domain.Common;
 using HealthCare.Domain.Entities.Audit;
 using HealthCare.Domain.Entities.Auth;
+using HealthCare.Domain.Entities.Doctors;
 using HealthCare.Domain.Entities.Family;
 using HealthCare.Domain.Entities.HealthProfile;
 using HealthCare.Domain.Entities.MedicalHistory;
@@ -46,6 +47,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Reminder> Reminders => Set<Reminder>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<ShareGrant> ShareGrants => Set<ShareGrant>();
+    public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

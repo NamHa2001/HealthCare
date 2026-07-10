@@ -1,0 +1,101 @@
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#5a5c69]">Đăng ký bác sĩ</h1>
+    <p class="text-sm text-[#858796] mt-1">
+      Xác minh chứng chỉ hành nghề để theo dõi sức khỏe bệnh nhân trên Health+.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+  } @else {
+
+    <!-- Trạng thái hồ sơ hiện tại -->
+    @if (profile(); as p) {
+      <div class="sb-card p-5 mb-6">
+        <div class="flex items-center gap-3 mb-3">
+          <mat-icon [class.text-[#f6c23e]]="p.status === 'pending'"
+                    [class.text-[#1cc88a]]="p.status === 'approved'"
+                    [class.text-[#e74a3b]]="p.status === 'rejected' || p.status === 'suspended'">
+            {{ statusInfo().icon }}
+          </mat-icon>
+          <div>
+            <span [class]="statusInfo().cls">{{ statusInfo().label }}</span>
+            <p class="text-xs text-[#858796] mt-1">Nộp hồ sơ: {{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-[#5a5c69]">
+          <div><span class="text-[#858796]">Số CCHN:</span> {{ p.licenseNumber }}</div>
+          <div><span class="text-[#858796]">Chuyên khoa:</span> {{ p.specialty }}</div>
+          <div><span class="text-[#858796]">Nơi công tác:</span> {{ p.workplace }}</div>
+        </div>
+
+        @if (p.status === 'rejected' && p.rejectReason) {
+          <div class="mt-3 p-3 rounded bg-[#e74a3b]/5 border border-[#e74a3b]/30 text-sm">
+            <span class="font-bold text-[#e74a3b]">Lý do từ chối:</span> {{ p.rejectReason }}
+            <p class="text-xs text-[#858796] mt-1">Cập nhật thông tin bên dưới và nộp lại.</p>
+          </div>
+        }
+        @if (p.status === 'approved') {
+          <p class="mt-3 text-sm text-[#1cc88a]">
+            ✓ Bạn đã là bác sĩ được xác minh. Đăng xuất rồi đăng nhập lại để kích hoạt quyền bác sĩ.
+          </p>
+        }
+        @if (p.status === 'pending') {
+          <p class="mt-3 text-sm text-[#858796]">
+            Quản trị viên sẽ kiểm tra chứng chỉ của bạn. Bạn sẽ nhận email khi có kết quả.
+          </p>
+        }
+      </div>
+    }
+
+    <!-- Form đăng ký / nộp lại -->
+    @if (showForm()) {
+      <form [formGroup]="form" (ngSubmit)="submit()" class="sb-card p-5">
+        <h2 class="font-bold text-[#5a5c69] mb-4">
+          {{ profile() === null ? 'Thông tin hành nghề' : 'Nộp lại hồ sơ' }}
+        </h2>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Số chứng chỉ hành nghề (CCHN)</mat-label>
+          <input matInput formControlName="licenseNumber" placeholder="VD: 001234/BYT-CCHN" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Chuyên khoa</mat-label>
+          <mat-select formControlName="specialty">
+            @for (s of specialties; track s) {
+              <mat-option [value]="s">{{ s }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Nơi công tác</mat-label>
+          <input matInput formControlName="workplace" placeholder="VD: Bệnh viện Bạch Mai" />
+        </mat-form-field>
+
+        <p class="text-sm text-[#858796] mb-2">Ảnh chứng chỉ hành nghề (JPG/PNG/PDF, tối đa 2 file × 10MB):</p>
+        <input type="file" accept="image/jpeg,image/png,application/pdf" multiple
+               (change)="onFilesSelected($event)"
+               class="block w-full text-sm text-[#858796] mb-3
+                      file:mr-3 file:px-4 file:py-2 file:rounded file:border-0
+                      file:bg-[#4e73df] file:text-white file:cursor-pointer" />
+
+        @if (previews().length > 0) {
+          <div class="flex gap-3 mb-4">
+            @for (src of previews(); track $index) {
+              <img [src]="src" alt="CCHN preview" class="h-28 rounded border border-gray-200 object-cover" />
+            }
+          </div>
+        } @else if (files().length > 0) {
+          <p class="text-xs text-[#858796] mb-4">{{ files().length }} file đã chọn</p>
+        }
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="submitting()">
+          @if (submitting()) { Đang nộp... } @else { <ng-container><mat-icon>send</mat-icon> Nộp hồ sơ</ng-container> }
+        </button>
+      </form>
+    }
+  }
+</div>

@@ -83,6 +83,12 @@ export const routes: Routes = [
         title: 'Phân tích — Health+',
       },
       {
+        path: 'doctor-registration',
+        loadComponent: () =>
+          import('./features/doctor/doctor-registration/doctor-registration.component').then(m => m.DoctorRegistrationComponent),
+        title: 'Đăng ký bác sĩ — Health+',
+      },
+      {
         path: 'sharing',
         loadChildren: () =>
           import('./features/sharing/sharing.routes').then(m => m.SHARING_ROUTES),

@@ -29,6 +29,7 @@ export class SidebarComponent {
     { label: 'Phân tích', icon: 'bar_chart', route: '/analytics' },
     { label: 'Chia sẻ hồ sơ', icon: 'share', route: '/sharing' },
     { label: 'Gia đình', icon: 'group', route: '/family' },
+    { label: 'Đăng ký bác sĩ', icon: 'badge', route: '/doctor-registration' },
   ];
 
   onNavClick(): void {

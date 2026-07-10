@@ -55,6 +55,28 @@ public class SmtpEmailService : IEmailService
             ct);
     }
 
+    public async Task SendDoctorApprovedAsync(string toEmail, string name, CancellationToken ct = default)
+    {
+        var link = $"{_config["App:FrontendUrl"]}/doctor-registration";
+        await SendAsync(toEmail, "Hồ sơ bác sĩ đã được duyệt — Health+",
+            $"<p>Xin chào BS. {name},</p>" +
+            $"<p>Hồ sơ bác sĩ của bạn đã được <strong>xác minh và phê duyệt</strong>. " +
+            $"Đăng nhập lại để kích hoạt quyền bác sĩ.</p>" +
+            $"<p><a href='{link}'>Xem trạng thái hồ sơ</a></p>",
+            ct);
+    }
+
+    public async Task SendDoctorRejectedAsync(string toEmail, string name, string reason, CancellationToken ct = default)
+    {
+        var link = $"{_config["App:FrontendUrl"]}/doctor-registration";
+        await SendAsync(toEmail, "Hồ sơ bác sĩ chưa được duyệt — Health+",
+            $"<p>Xin chào {name},</p>" +
+            $"<p>Hồ sơ bác sĩ của bạn chưa được phê duyệt. Lý do:</p>" +
+            $"<blockquote>{reason}</blockquote>" +
+            $"<p>Bạn có thể <a href='{link}'>cập nhật và nộp lại hồ sơ</a>.</p>",
+            ct);
+    }
+
     private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken ct)
     {
         var message = new MimeMessage();

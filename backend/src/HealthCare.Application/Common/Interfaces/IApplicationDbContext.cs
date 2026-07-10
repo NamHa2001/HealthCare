@@ -1,5 +1,6 @@
 ﻿using HealthCare.Domain.Entities.Audit;
 using HealthCare.Domain.Entities.Auth;
+using HealthCare.Domain.Entities.Doctors;
 using HealthCare.Domain.Entities.Family;
 using HealthCare.Domain.Entities.HealthProfile;
 using HealthCare.Domain.Entities.MedicalHistory;
@@ -41,5 +42,6 @@ public interface IApplicationDbContext
     DbSet<Reminder> Reminders { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<ShareGrant> ShareGrants { get; }
+    DbSet<DoctorProfile> DoctorProfiles { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
