@@ -44,5 +44,6 @@ public interface IApplicationDbContext
     DbSet<ShareGrant> ShareGrants { get; }
     DbSet<DoctorProfile> DoctorProfiles { get; }
     DbSet<PatientDoctorLink> PatientDoctorLinks { get; }
+    DbSet<DoctorAlertDelivery> DoctorAlertDeliveries { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

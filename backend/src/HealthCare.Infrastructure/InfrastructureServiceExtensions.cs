@@ -55,9 +55,11 @@ public static class InfrastructureServiceExtensions
         services.AddSingleton<IVaccinePassportService, VaccinePassportService>();
         services.AddScoped<INotificationService, FcmNotificationService>();
 
-        // Background jobs
+        // Background jobs — chạy bởi JobSchedulerHostedService (mỗi 15' / hàng ngày)
         services.AddScoped<ReminderProcessorJob>();
         services.AddScoped<VaccineReminderJob>();
+        services.AddScoped<DoctorDigestJob>();
+        services.AddHostedService<JobSchedulerHostedService>();
 
         return services;
     }

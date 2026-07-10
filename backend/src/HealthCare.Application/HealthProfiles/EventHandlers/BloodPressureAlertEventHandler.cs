@@ -1,4 +1,5 @@
 ﻿using HealthCare.Application.Common.Interfaces;
+using HealthCare.Application.Doctors.Notifications;
 using HealthCare.Domain.Entities.HealthProfile;
 using HealthCare.Domain.Enums;
 using HealthCare.Domain.Events;
@@ -9,9 +10,13 @@ namespace HealthCare.Application.HealthProfiles.EventHandlers;
 public class BloodPressureAlertEventHandler : INotificationHandler<BloodPressureAlertEvent>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDoctorAlertNotifier _doctorNotifier;
 
-    public BloodPressureAlertEventHandler(IApplicationDbContext context)
-        => _context = context;
+    public BloodPressureAlertEventHandler(IApplicationDbContext context, IDoctorAlertNotifier doctorNotifier)
+    {
+        _context = context;
+        _doctorNotifier = doctorNotifier;
+    }
 
     public async Task Handle(BloodPressureAlertEvent notification, CancellationToken ct)
     {
@@ -28,5 +33,8 @@ public class BloodPressureAlertEventHandler : INotificationHandler<BloodPressure
 
         _context.HealthAlerts.Add(alert);
         await _context.SaveChangesAsync(ct);
+
+        // Báo cho các bác sĩ đang theo dõi (DOCTOR_PORTAL.md §7)
+        await _doctorNotifier.NotifyDoctorsAsync([alert], ct);
     }
 }

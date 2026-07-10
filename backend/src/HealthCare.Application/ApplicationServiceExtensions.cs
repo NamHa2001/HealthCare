@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using HealthCare.Application.Common.Behaviours;
+using HealthCare.Application.Doctors.Notifications;
 using HealthCare.Application.Mappings;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,8 @@ public static class ApplicationServiceExtensions
         services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 
         services.AddValidatorsFromAssembly(typeof(ApplicationServiceExtensions).Assembly);
+
+        services.AddScoped<IDoctorAlertNotifier, DoctorAlertNotifier>();
 
         services.AddMediatR(cfg =>
         {

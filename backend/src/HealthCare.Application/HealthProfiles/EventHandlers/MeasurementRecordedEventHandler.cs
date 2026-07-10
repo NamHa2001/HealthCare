@@ -1,4 +1,5 @@
 ﻿using HealthCare.Application.Common.Interfaces;
+using HealthCare.Application.Doctors.Notifications;
 using HealthCare.Domain.Entities.HealthProfile;
 using HealthCare.Domain.Enums;
 using HealthCare.Domain.Events;
@@ -9,9 +10,13 @@ namespace HealthCare.Application.HealthProfiles.EventHandlers;
 public class MeasurementRecordedEventHandler : INotificationHandler<MeasurementRecordedEvent>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDoctorAlertNotifier _doctorNotifier;
 
-    public MeasurementRecordedEventHandler(IApplicationDbContext context)
-        => _context = context;
+    public MeasurementRecordedEventHandler(IApplicationDbContext context, IDoctorAlertNotifier doctorNotifier)
+    {
+        _context = context;
+        _doctorNotifier = doctorNotifier;
+    }
 
     public async Task Handle(MeasurementRecordedEvent notification, CancellationToken ct)
     {
@@ -58,6 +63,9 @@ public class MeasurementRecordedEventHandler : INotificationHandler<MeasurementR
         {
             _context.HealthAlerts.AddRange(alerts);
             await _context.SaveChangesAsync(ct);
+
+            // Báo cho các bác sĩ đang theo dõi (DOCTOR_PORTAL.md §7)
+            await _doctorNotifier.NotifyDoctorsAsync(alerts, ct);
         }
     }
 }

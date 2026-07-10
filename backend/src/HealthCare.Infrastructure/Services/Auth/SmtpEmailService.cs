@@ -88,6 +88,29 @@ public class SmtpEmailService : IEmailService
             ct);
     }
 
+    public async Task SendDoctorAlertAsync(string toEmail, string doctorName, string patientName, string alertMessage, CancellationToken ct = default)
+    {
+        var link = $"{_config["App:FrontendUrl"]}/doctor/patients";
+        await SendAsync(toEmail, $"⚠ Cảnh báo nghiêm trọng — bệnh nhân {patientName}",
+            $"<p>BS. {doctorName},</p>" +
+            $"<p>Bệnh nhân <strong>{patientName}</strong> vừa có chỉ số vượt ngưỡng nghiêm trọng:</p>" +
+            $"<blockquote><strong>{alertMessage}</strong></blockquote>" +
+            $"<p><a href='{link}'>Xem hồ sơ bệnh nhân</a></p>",
+            ct);
+    }
+
+    public async Task SendDoctorDigestAsync(string toEmail, string doctorName, IReadOnlyList<string> lines, CancellationToken ct = default)
+    {
+        var link = $"{_config["App:FrontendUrl"]}/doctor/patients";
+        var items = string.Join("", lines.Select(l => $"<li>{l}</li>"));
+        await SendAsync(toEmail, $"Tổng hợp cảnh báo bệnh nhân ({lines.Count}) — Health+",
+            $"<p>BS. {doctorName},</p>" +
+            $"<p>Các chỉ số cần chú ý của bệnh nhân trong ngày qua:</p>" +
+            $"<ul>{items}</ul>" +
+            $"<p><a href='{link}'>Xem chi tiết trên Health+</a></p>",
+            ct);
+    }
+
     private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken ct)
     {
         var message = new MimeMessage();

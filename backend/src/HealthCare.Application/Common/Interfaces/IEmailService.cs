@@ -10,4 +10,6 @@ public interface IEmailService
     Task SendDoctorApprovedAsync(string toEmail, string name, CancellationToken ct = default);
     Task SendDoctorRejectedAsync(string toEmail, string name, string reason, CancellationToken ct = default);
     Task SendDoctorLinkInviteAsync(string toEmail, string name, string inviterDescription, CancellationToken ct = default);
+    Task SendDoctorAlertAsync(string toEmail, string doctorName, string patientName, string alertMessage, CancellationToken ct = default);
+    Task SendDoctorDigestAsync(string toEmail, string doctorName, IReadOnlyList<string> lines, CancellationToken ct = default);
 }
