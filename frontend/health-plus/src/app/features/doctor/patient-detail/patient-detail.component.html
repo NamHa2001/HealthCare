@@ -1,0 +1,201 @@
+<div>
+  @if (loading()) {
+    <div class="flex justify-center py-16"><mat-spinner diameter="48" /></div>
+
+  } @else if (forbidden()) {
+    <div class="text-center py-16 text-[#858796]">
+      <mat-icon class="block mb-3 text-gray-300 mx-auto" style="font-size:4rem;width:4rem;height:4rem">block</mat-icon>
+      <h1 class="text-xl font-bold text-[#5a5c69] mb-2">Không có quyền truy cập</h1>
+      <p class="text-sm mb-4">Liên kết với bệnh nhân này không tồn tại hoặc đã bị thu hồi.</p>
+      <button mat-stroked-button routerLink="/doctor/patients">← Về danh sách bệnh nhân</button>
+    </div>
+
+  } @else if (summary(); as s) {
+    <div class="mb-4 flex items-center gap-3 flex-wrap">
+      <button mat-icon-button routerLink="/doctor/patients"><mat-icon>arrow_back</mat-icon></button>
+      <div>
+        <h1 class="text-2xl font-bold text-[#5a5c69]">{{ s.patientName }}</h1>
+        <p class="text-xs text-[#858796]">
+          Liên kết từ {{ s.consentAt | date:'dd/MM/yyyy' }} · Chế độ chỉ xem theo phạm vi bệnh nhân đồng ý
+        </p>
+      </div>
+    </div>
+
+    <!-- Cảnh báo active -->
+    @if (s.activeAlerts.length > 0) {
+      <div class="sb-card mb-4">
+        <div class="px-5 py-3 border-b border-gray-100 font-bold text-[#e74a3b]">
+          ⚠ Cảnh báo chưa xử lý ({{ s.activeAlerts.length }})
+        </div>
+        @for (a of s.activeAlerts; track a.id; let last = $last) {
+          <div class="flex items-center justify-between px-5 py-3 gap-2"
+               [class.border-b]="!last" [class.border-gray-100]="!last">
+            <div>
+              <span [class]="a.severity === 'Critical' ? 'badge-danger' : 'badge-warning'">
+                {{ a.severity === 'Critical' ? 'Nghiêm trọng' : 'Chú ý' }}
+              </span>
+              <span class="text-sm text-[#5a5c69] ml-2">{{ a.message }}</span>
+              <p class="text-xs text-[#858796] mt-0.5">{{ a.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+            <button mat-stroked-button (click)="acknowledge(a)">
+              <mat-icon>done</mat-icon> Đã xem xét
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Thông tin cơ bản -->
+    @if (has('profile')) {
+      <div class="sb-card p-5 mb-4">
+        <h2 class="font-bold text-[#5a5c69] mb-3">Thông tin cơ bản</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm text-[#5a5c69]">
+          @if (s.dateOfBirth) { <div><span class="text-[#858796]">Ngày sinh:</span> {{ s.dateOfBirth | date:'dd/MM/yyyy' }}</div> }
+          @if (s.gender) { <div><span class="text-[#858796]">Giới tính:</span> {{ s.gender }}</div> }
+          @if (s.bloodType) { <div><span class="text-[#858796]">Nhóm máu:</span> {{ s.bloodType }}</div> }
+          @if (s.allergies) { <div><span class="text-[#858796]">Dị ứng:</span> {{ s.allergies }}</div> }
+          @if (s.chronicConditions) { <div><span class="text-[#858796]">Bệnh mãn tính:</span> {{ s.chronicConditions }}</div> }
+        </div>
+      </div>
+    }
+
+    <mat-tab-group>
+      @if (has('measurements')) {
+        <mat-tab label="Chỉ số">
+          <div class="overflow-x-auto pt-3">
+            @if (measurements().length === 0) {
+              <p class="py-6 text-center text-sm text-[#858796]">Chưa có dữ liệu.</p>
+            } @else {
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs text-[#858796] border-b border-gray-100">
+                    <th class="px-3 py-2">Thời điểm</th>
+                    <th class="px-2 py-2">Cân nặng</th>
+                    <th class="px-2 py-2">BMI</th>
+                    <th class="px-2 py-2">Nhịp tim</th>
+                    <th class="px-2 py-2">SpO2</th>
+                    <th class="px-2 py-2">Đường huyết</th>
+                    <th class="px-2 py-2">Nhiệt độ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of measurements(); track r.id) {
+                    <tr class="border-b border-gray-50 text-[#5a5c69]">
+                      <td class="px-3 py-2 whitespace-nowrap">{{ r.measuredAt | date:'dd/MM/yy HH:mm' }}</td>
+                      <td class="px-2 py-2">{{ r.weightKg ?? '—' }}</td>
+                      <td class="px-2 py-2">{{ r.bmi ?? '—' }}</td>
+                      <td class="px-2 py-2">{{ r.heartRateBpm ?? '—' }}</td>
+                      <td class="px-2 py-2">{{ r.spo2Percent ?? '—' }}</td>
+                      <td class="px-2 py-2">{{ r.bloodGlucose ?? '—' }}</td>
+                      <td class="px-2 py-2">{{ r.bodyTemperature ?? '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        </mat-tab>
+      }
+
+      @if (has('blood_pressure')) {
+        <mat-tab label="Huyết áp">
+          <div class="overflow-x-auto pt-3">
+            @if (bloodPressure().length === 0) {
+              <p class="py-6 text-center text-sm text-[#858796]">Chưa có dữ liệu.</p>
+            } @else {
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs text-[#858796] border-b border-gray-100">
+                    <th class="px-3 py-2">Thời điểm</th>
+                    <th class="px-2 py-2">Tâm thu</th>
+                    <th class="px-2 py-2">Tâm trương</th>
+                    <th class="px-2 py-2">Mạch</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of bloodPressure(); track r.id) {
+                    <tr class="border-b border-gray-50 text-[#5a5c69]">
+                      <td class="px-3 py-2 whitespace-nowrap">{{ r.measuredAt | date:'dd/MM/yy HH:mm' }}</td>
+                      <td class="px-2 py-2" [class.text-[#e74a3b]]="r.systolic > 140" [class.font-bold]="r.systolic > 140">{{ r.systolic }}</td>
+                      <td class="px-2 py-2" [class.text-[#e74a3b]]="r.diastolic > 90" [class.font-bold]="r.diastolic > 90">{{ r.diastolic }}</td>
+                      <td class="px-2 py-2">{{ r.pulse ?? '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        </mat-tab>
+      }
+
+      @if (has('visits')) {
+        <mat-tab label="Lịch sử khám">
+          <div class="pt-3">
+            @if (visits().length === 0) {
+              <p class="py-6 text-center text-sm text-[#858796]">Chưa có dữ liệu.</p>
+            } @else {
+              @for (v of visits(); track v.id; let last = $last) {
+                <div class="px-3 py-3" [class.border-b]="!last" [class.border-gray-100]="!last">
+                  <div class="flex justify-between flex-wrap gap-1">
+                    <span class="font-medium text-[#5a5c69]">{{ v.facilityName }}</span>
+                    <span class="text-xs text-[#858796]">{{ v.visitDate | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <p class="text-sm text-[#858796]">{{ v.diagnosis }}</p>
+                  @if (v.doctorName) { <p class="text-xs text-[#858796]">BS. {{ v.doctorName }}</p> }
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+
+      @if (has('medications')) {
+        <mat-tab label="Thuốc">
+          <div class="pt-3">
+            @if (medications().length === 0) {
+              <p class="py-6 text-center text-sm text-[#858796]">Chưa có dữ liệu.</p>
+            } @else {
+              @for (m of medications(); track m.id; let last = $last) {
+                <div class="px-3 py-3" [class.border-b]="!last" [class.border-gray-100]="!last">
+                  <div class="flex justify-between flex-wrap gap-1">
+                    <span class="font-medium text-[#5a5c69]">{{ m.drugName }} {{ m.strength }}</span>
+                    @if (m.isOngoing) { <span class="badge-success">Đang dùng</span> }
+                  </div>
+                  @if (m.instructions) { <p class="text-sm text-[#858796]">{{ m.instructions }}</p> }
+                  <p class="text-xs text-[#858796]">
+                    Từ {{ m.startDate | date:'dd/MM/yyyy' }}
+                    @if (m.endDate) { đến {{ m.endDate | date:'dd/MM/yyyy' }} }
+                  </p>
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+
+      @if (has('vaccines')) {
+        <mat-tab label="Vắc-xin">
+          <div class="pt-3">
+            @if (vaccines().length === 0) {
+              <p class="py-6 text-center text-sm text-[#858796]">Chưa có dữ liệu.</p>
+            } @else {
+              @for (v of vaccines(); track v.id; let last = $last) {
+                <div class="px-3 py-3 flex justify-between items-center flex-wrap gap-1"
+                     [class.border-b]="!last" [class.border-gray-100]="!last">
+                  <div>
+                    <span class="font-medium text-[#5a5c69]">{{ v.vaccineName }}</span>
+                    <span class="text-xs text-[#858796]"> — mũi {{ v.doseNumber }}, {{ v.injectionDate | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <span class="text-xs" [class.text-[#e74a3b]]="v.status === 'overdue'" [class.text-[#858796]]="v.status !== 'overdue'">
+                    {{ vaccineStatusLabel(v.status) }}
+                    @if (v.nextDueDate) { — mũi tiếp: {{ v.nextDueDate | date:'dd/MM/yyyy' }} }
+                  </span>
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+</div>

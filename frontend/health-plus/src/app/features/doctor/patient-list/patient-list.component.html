@@ -1,0 +1,63 @@
+<div>
+  <div class="mb-6 flex items-center justify-between flex-wrap gap-2">
+    <div>
+      <h1 class="text-2xl font-bold text-[#5a5c69]">Bệnh nhân của tôi</h1>
+      <p class="text-sm text-[#858796] mt-1">Bệnh nhân có cảnh báo nghiêm trọng được xếp lên đầu</p>
+    </div>
+    <button mat-stroked-button color="primary" routerLink="/doctor-invitations">
+      <mat-icon>person_add</mat-icon> Mời bệnh nhân
+    </button>
+  </div>
+
+  <div class="sb-card">
+    @if (loading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+    } @else if (patients().length === 0) {
+      <div class="text-center py-12 text-[#858796]">
+        <mat-icon class="block mb-3 text-gray-200 mx-auto" style="font-size:3.5rem;width:3.5rem;height:3.5rem">groups</mat-icon>
+        <p>Chưa có bệnh nhân liên kết. Hãy gửi lời mời.</p>
+        <button mat-raised-button color="primary" class="mt-4" routerLink="/doctor-invitations">Mời bệnh nhân</button>
+      </div>
+    } @else {
+      @for (p of patients(); track p.linkId; let last = $last) {
+        <a [routerLink]="['/doctor/patients', p.healthProfileId]"
+           class="flex items-start px-5 py-4 hover:bg-[#f8f9fc] transition-colors cursor-pointer"
+           [class.border-b]="!last" [class.border-gray-100]="!last">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 shrink-0"
+               [class.bg-[#e74a3b]/10]="p.criticalAlerts > 0"
+               [class.bg-[#4e73df]/10]="p.criticalAlerts === 0">
+            <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem"
+                      [class.text-[#e74a3b]]="p.criticalAlerts > 0"
+                      [class.text-[#4e73df]]="p.criticalAlerts === 0">
+              {{ p.criticalAlerts > 0 ? 'warning' : 'person' }}
+            </mat-icon>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <h3 class="font-bold text-[#5a5c69]">{{ p.patientName }}</h3>
+              @if (p.criticalAlerts > 0) {
+                <span class="badge-danger">{{ p.criticalAlerts }} cảnh báo nghiêm trọng</span>
+              }
+              @if (p.warningAlerts > 0) {
+                <span class="badge-warning">{{ p.warningAlerts }} cần chú ý</span>
+              }
+            </div>
+            <div class="flex flex-wrap gap-x-4 text-sm text-[#858796]">
+              @if (p.latestBmi !== null) { <span>BMI: <strong class="text-[#5a5c69]">{{ p.latestBmi | number:'1.1-1' }}</strong></span> }
+              @if (p.latestBp) { <span>Huyết áp: <strong class="text-[#5a5c69]">{{ p.latestBp }}</strong></span> }
+              @if (p.latestMeasuredAt) { <span>Đo gần nhất: {{ p.latestMeasuredAt | date:'dd/MM/yyyy' }}</span> }
+              @if (p.lastVisitDate) { <span>Khám gần nhất: {{ p.lastVisitDate | date:'dd/MM/yyyy' }}</span> }
+            </div>
+            <div class="flex flex-wrap gap-1 mt-1">
+              @for (s of p.consentScope; track s) {
+                <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-[#5a5c69]">{{ scopeLabel(s) }}</span>
+              }
+            </div>
+          </div>
+          <mat-icon class="text-[#858796] self-center">chevron_right</mat-icon>
+        </a>
+      }
+    }
+  </div>
+</div>

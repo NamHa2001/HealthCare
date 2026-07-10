@@ -39,7 +39,7 @@ export class SidebarComponent {
   readonly navItems = computed<NavItem[]>(() => [
     ...this.baseItems,
     ...(this.authStore.isDoctor()
-      ? [{ label: 'Bệnh nhân của tôi', icon: 'groups', route: '/doctor-invitations' }]
+      ? [{ label: 'Bệnh nhân của tôi', icon: 'groups', route: '/doctor/patients' }]
       : []),
     { label: 'Đăng ký bác sĩ', icon: 'badge', route: '/doctor-registration' },
   ]);

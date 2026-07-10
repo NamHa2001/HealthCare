@@ -1,4 +1,6 @@
 using HealthCare.Application.Doctors.Commands.RegisterDoctor;
+using HealthCare.Application.Doctors.Dashboard.Commands;
+using HealthCare.Application.Doctors.Dashboard.Queries;
 using HealthCare.Application.Doctors.DTOs;
 using HealthCare.Application.Doctors.Links.Commands;
 using HealthCare.Application.Doctors.Links.Queries;
@@ -58,6 +60,51 @@ public class DoctorController : BaseController
     public async Task<IActionResult> RevokeInvitation(Guid id, CancellationToken ct)
     {
         await Sender.Send(new RevokeDoctorLinkCommand(id), ct);
+        return NoContent();
+    }
+
+    // ─── Doctor Dashboard (DOCTOR_PORTAL.md §6) — read-only, guard theo consent ──
+
+    [Authorize(Roles = "doctor")]
+    [HttpGet("patients")]
+    public async Task<IActionResult> GetMyPatients(CancellationToken ct)
+        => Ok(await Sender.Send(new GetMyPatientsQuery(), ct));
+
+    [Authorize(Roles = "doctor")]
+    [HttpGet("patients/{profileId:guid}/summary")]
+    public async Task<IActionResult> GetPatientSummary(Guid profileId, CancellationToken ct)
+        => Ok(await Sender.Send(new GetPatientSummaryQuery(profileId), ct));
+
+    [Authorize(Roles = "doctor")]
+    [HttpGet("patients/{profileId:guid}/measurements")]
+    public async Task<IActionResult> GetPatientMeasurements(Guid profileId, CancellationToken ct)
+        => Ok(await Sender.Send(new GetPatientMeasurementsQuery(profileId), ct));
+
+    [Authorize(Roles = "doctor")]
+    [HttpGet("patients/{profileId:guid}/blood-pressure")]
+    public async Task<IActionResult> GetPatientBloodPressure(Guid profileId, CancellationToken ct)
+        => Ok(await Sender.Send(new GetPatientBloodPressureQuery(profileId), ct));
+
+    [Authorize(Roles = "doctor")]
+    [HttpGet("patients/{profileId:guid}/medical-visits")]
+    public async Task<IActionResult> GetPatientVisits(Guid profileId, CancellationToken ct)
+        => Ok(await Sender.Send(new GetPatientVisitsQuery(profileId), ct));
+
+    [Authorize(Roles = "doctor")]
+    [HttpGet("patients/{profileId:guid}/medications")]
+    public async Task<IActionResult> GetPatientMedications(Guid profileId, CancellationToken ct)
+        => Ok(await Sender.Send(new GetPatientMedicationsQuery(profileId), ct));
+
+    [Authorize(Roles = "doctor")]
+    [HttpGet("patients/{profileId:guid}/vaccines")]
+    public async Task<IActionResult> GetPatientVaccines(Guid profileId, CancellationToken ct)
+        => Ok(await Sender.Send(new GetPatientVaccinesQuery(profileId), ct));
+
+    [Authorize(Roles = "doctor")]
+    [HttpPost("patients/{profileId:guid}/alerts/{alertId:guid}/acknowledge")]
+    public async Task<IActionResult> AcknowledgeAlert(Guid profileId, Guid alertId, CancellationToken ct)
+    {
+        await Sender.Send(new AcknowledgeAlertAsDoctorCommand(profileId, alertId), ct);
         return NoContent();
     }
 }

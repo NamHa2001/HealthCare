@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { adminGuard } from './core/auth/admin.guard';
+import { doctorGuard } from './core/auth/doctor.guard';
 
 export const routes: Routes = [
   // Redirect gốc → dashboard
@@ -81,6 +82,20 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/analytics/analytics.routes').then(m => m.ANALYTICS_ROUTES),
         title: 'Phân tích — Health+',
+      },
+      {
+        path: 'doctor/patients',
+        loadComponent: () =>
+          import('./features/doctor/patient-list/patient-list.component').then(m => m.PatientListComponent),
+        canActivate: [doctorGuard],
+        title: 'Bệnh nhân của tôi — Health+',
+      },
+      {
+        path: 'doctor/patients/:profileId',
+        loadComponent: () =>
+          import('./features/doctor/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent),
+        canActivate: [doctorGuard],
+        title: 'Hồ sơ bệnh nhân — Health+',
       },
       {
         path: 'doctor-links',
