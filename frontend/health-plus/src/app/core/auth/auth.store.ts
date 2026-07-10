@@ -21,6 +21,7 @@ export const AuthStore = signalStore(
     isLoggedIn: computed(() => !!store.accessToken()),
     roles: computed(() => store.currentUser()?.roles ?? []),
     isAdmin: computed(() => (store.currentUser()?.roles ?? []).includes('admin')),
+    isDoctor: computed(() => (store.currentUser()?.roles ?? []).includes('doctor')),
   })),
   withMethods((store) => ({
     setAuth(user: User, accessToken: string, refreshToken: string): void {

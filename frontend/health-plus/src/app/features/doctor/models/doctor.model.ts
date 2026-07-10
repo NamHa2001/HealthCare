@@ -30,6 +30,45 @@ export interface DoctorVerificationDetail extends DoctorVerificationItem {
   licenseDocUrls: string[];
 }
 
+export type LinkStatus = 'pending' | 'active' | 'rejected' | 'revoked';
+
+/** Liên kết nhìn từ phía bệnh nhân */
+export interface DoctorLink {
+  id: string;
+  doctorUserId: string;
+  doctorName: string;
+  specialty: string;
+  workplace: string;
+  healthProfileId: string;
+  profileOwnerName: string;
+  initiatedBy: 'doctor' | 'patient';
+  status: LinkStatus;
+  consentAt: string | null;
+  consentScope: string[];
+  consentText: string | null;
+  createdAt: string;
+}
+
+/** Liên kết nhìn từ phía bác sĩ */
+export interface PatientLink {
+  id: string;
+  healthProfileId: string;
+  patientName: string;
+  initiatedBy: 'doctor' | 'patient';
+  status: LinkStatus;
+  consentAt: string | null;
+  consentScope: string[];
+  createdAt: string;
+}
+
+export interface DoctorSearchResult {
+  userId: string;
+  fullName: string;
+  specialty: string;
+  workplace: string;
+  licenseNumber: string;
+}
+
 export const SPECIALTIES = [
   'Nội tổng quát', 'Nhi khoa', 'Sản phụ khoa', 'Tim mạch', 'Nội tiết',
   'Da liễu', 'Tai mũi họng', 'Mắt', 'Răng hàm mặt', 'Cơ xương khớp',

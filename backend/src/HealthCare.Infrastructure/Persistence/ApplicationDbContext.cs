@@ -48,6 +48,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<ShareGrant> ShareGrants => Set<ShareGrant>();
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
+    public DbSet<PatientDoctorLink> PatientDoctorLinks => Set<PatientDoctorLink>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

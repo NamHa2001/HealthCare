@@ -43,5 +43,6 @@ public interface IApplicationDbContext
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<ShareGrant> ShareGrants { get; }
     DbSet<DoctorProfile> DoctorProfiles { get; }
+    DbSet<PatientDoctorLink> PatientDoctorLinks { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

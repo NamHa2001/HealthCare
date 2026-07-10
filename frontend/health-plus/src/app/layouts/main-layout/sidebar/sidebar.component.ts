@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { AuthStore } from '../../../core/auth/auth.store';
 
 interface NavItem {
   label: string;
@@ -18,7 +19,9 @@ export class SidebarComponent {
   @Input() isOpen = false;
   @Output() closeRequested = new EventEmitter<void>();
 
-  readonly navItems: NavItem[] = [
+  private readonly authStore = inject(AuthStore);
+
+  private readonly baseItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Hồ sơ sức khỏe', icon: 'favorite', route: '/health-records' },
     { label: 'Lịch sử khám', icon: 'medical_services', route: '/medical-history' },
@@ -28,9 +31,18 @@ export class SidebarComponent {
     { label: 'Nhắc lịch', icon: 'notifications', route: '/reminders' },
     { label: 'Phân tích', icon: 'bar_chart', route: '/analytics' },
     { label: 'Chia sẻ hồ sơ', icon: 'share', route: '/sharing' },
+    { label: 'Bác sĩ của tôi', icon: 'medical_information', route: '/doctor-links' },
     { label: 'Gia đình', icon: 'group', route: '/family' },
-    { label: 'Đăng ký bác sĩ', icon: 'badge', route: '/doctor-registration' },
   ];
+
+  /** Mục theo role: "Bệnh nhân của tôi" chỉ hiện với bác sĩ đã xác minh */
+  readonly navItems = computed<NavItem[]>(() => [
+    ...this.baseItems,
+    ...(this.authStore.isDoctor()
+      ? [{ label: 'Bệnh nhân của tôi', icon: 'groups', route: '/doctor-invitations' }]
+      : []),
+    { label: 'Đăng ký bác sĩ', icon: 'badge', route: '/doctor-registration' },
+  ]);
 
   onNavClick(): void {
     this.closeRequested.emit();

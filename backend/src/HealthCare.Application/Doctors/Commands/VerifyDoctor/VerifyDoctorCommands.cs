@@ -101,6 +101,14 @@ public class SuspendDoctorCommandHandler(
 
         profile.Suspend(request.Reason, currentUser.UserId!.Value);
 
+        // Thu hồi mọi liên kết bệnh nhân đang hoạt động (DOCTOR_PORTAL.md §4.2)
+        var activeLinks = await db.PatientDoctorLinks
+            .Where(l => l.DoctorUserId == profile.UserId
+                && (l.Status == DoctorLinkStatus.Active || l.Status == DoctorLinkStatus.Pending))
+            .ToListAsync(ct);
+        foreach (var link in activeLinks)
+            link.Revoke("system");
+
         // Thu hồi role 'doctor' ngay lập tức
         var doctorRole = await db.Roles.FirstOrDefaultAsync(r => r.Name == "doctor", ct);
         if (doctorRole is not null)

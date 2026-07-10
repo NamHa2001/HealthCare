@@ -9,4 +9,5 @@ public interface IEmailService
     Task SendFamilyInviteAsync(string toEmail, string inviterName, string groupName, string token, CancellationToken ct = default);
     Task SendDoctorApprovedAsync(string toEmail, string name, CancellationToken ct = default);
     Task SendDoctorRejectedAsync(string toEmail, string name, string reason, CancellationToken ct = default);
+    Task SendDoctorLinkInviteAsync(string toEmail, string name, string inviterDescription, CancellationToken ct = default);
 }

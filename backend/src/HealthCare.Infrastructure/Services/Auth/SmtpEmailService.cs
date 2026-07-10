@@ -77,6 +77,17 @@ public class SmtpEmailService : IEmailService
             ct);
     }
 
+    public async Task SendDoctorLinkInviteAsync(string toEmail, string name, string inviterDescription, CancellationToken ct = default)
+    {
+        var link = $"{_config["App:FrontendUrl"]}/doctor-links";
+        await SendAsync(toEmail, "Lời mời liên kết theo dõi sức khỏe — Health+",
+            $"<p>Xin chào {name},</p>" +
+            $"<p><strong>{inviterDescription}</strong> muốn liên kết theo dõi sức khỏe với bạn trên Health+.</p>" +
+            $"<p><a href='{link}'>Xem và phản hồi lời mời</a></p>" +
+            $"<p><small>Bạn toàn quyền chấp nhận, từ chối, hoặc thu hồi liên kết bất cứ lúc nào.</small></p>",
+            ct);
+    }
+
     private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken ct)
     {
         var message = new MimeMessage();

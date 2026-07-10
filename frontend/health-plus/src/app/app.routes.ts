@@ -83,6 +83,18 @@ export const routes: Routes = [
         title: 'Phân tích — Health+',
       },
       {
+        path: 'doctor-links',
+        loadComponent: () =>
+          import('./features/doctor/doctor-links/doctor-links.component').then(m => m.DoctorLinksComponent),
+        title: 'Bác sĩ của tôi — Health+',
+      },
+      {
+        path: 'doctor-invitations',
+        loadComponent: () =>
+          import('./features/doctor/invitations/doctor-invitations.component').then(m => m.DoctorInvitationsComponent),
+        title: 'Bệnh nhân của tôi — Health+',
+      },
+      {
         path: 'doctor-registration',
         loadComponent: () =>
           import('./features/doctor/doctor-registration/doctor-registration.component').then(m => m.DoctorRegistrationComponent),

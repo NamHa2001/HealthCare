@@ -1,0 +1,78 @@
+<div class="max-w-3xl">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#5a5c69]">Bệnh nhân của tôi</h1>
+    <p class="text-sm text-[#858796] mt-1">
+      Mời bệnh nhân liên kết — bạn chỉ xem được dữ liệu khi bệnh nhân đồng ý rõ ràng.
+    </p>
+  </div>
+
+  <!-- Mời bệnh nhân -->
+  <div class="sb-card p-5 mb-6">
+    <h2 class="font-bold text-[#5a5c69] mb-3">Mời bệnh nhân</h2>
+    <div class="flex gap-2">
+      <input [(ngModel)]="inviteEmail" (keyup.enter)="invite()"
+             type="email" placeholder="Email bệnh nhân đã đăng ký Health+..."
+             class="flex-1 border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#4e73df]" />
+      <button mat-raised-button color="primary" [disabled]="acting()" (click)="invite()">
+        <mat-icon>person_add</mat-icon> Gửi lời mời
+      </button>
+    </div>
+  </div>
+
+  <!-- Danh sách liên kết -->
+  <div class="sb-card">
+    <div class="px-5 py-3 border-b border-gray-100 font-bold text-[#5a5c69]">Liên kết đã gửi</div>
+    @if (loading()) {
+      <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+    } @else if (links().length === 0) {
+      <div class="text-center py-12 text-[#858796]">
+        <mat-icon class="block mb-3 text-gray-200 mx-auto" style="font-size:3.5rem;width:3.5rem;height:3.5rem">groups</mat-icon>
+        <p>Chưa có bệnh nhân nào. Gửi lời mời đầu tiên ở trên.</p>
+      </div>
+    } @else {
+      @for (link of links(); track link.id; let last = $last) {
+        <div class="flex items-start px-5 py-4" [class.border-b]="!last" [class.border-gray-100]="!last">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 shrink-0 bg-[#4e73df]/10">
+            <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem" class="text-[#4e73df]">person</mat-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <h3 class="font-bold text-[#5a5c69]">{{ link.patientName }}</h3>
+              <span [class]="statusInfo(link.status).cls">{{ statusInfo(link.status).label }}</span>
+            </div>
+            @if (link.consentScope.length > 0) {
+              <div class="flex flex-wrap gap-1 mt-1">
+                @for (s of link.consentScope; track s) {
+                  <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-[#5a5c69]">{{ scopeLabel(s) }}</span>
+                }
+              </div>
+            }
+            @if (link.status === 'active') {
+              <p class="text-xs text-[#858796] mt-1">Đồng ý lúc: {{ link.consentAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            } @else {
+              <p class="text-xs text-[#858796] mt-1">
+                {{ link.initiatedBy === 'patient' ? 'Bệnh nhân mời bạn' : 'Bạn đã mời' }} ·
+                {{ link.createdAt | date:'dd/MM/yyyy' }}
+              </p>
+            }
+          </div>
+          @if (link.status === 'pending' && link.initiatedBy === 'patient') {
+            <div class="flex gap-2">
+              <button mat-raised-button color="primary" [disabled]="acting()" (click)="acceptPatientInvite(link)">
+                <mat-icon>check</mat-icon> Nhận
+              </button>
+              <button mat-stroked-button color="warn" [disabled]="acting()" (click)="rejectPatientInvite(link)">
+                Từ chối
+              </button>
+            </div>
+          } @else if (link.status === 'active' || link.status === 'pending') {
+            <button mat-icon-button [matTooltip]="link.status === 'active' ? 'Ngừng theo dõi' : 'Hủy lời mời'"
+                    color="warn" (click)="revoke(link)">
+              <mat-icon>link_off</mat-icon>
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

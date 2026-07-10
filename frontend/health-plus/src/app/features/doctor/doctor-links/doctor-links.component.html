@@ -1,0 +1,177 @@
+<div class="max-w-3xl">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[#5a5c69]">Bác sĩ của tôi</h1>
+    <p class="text-sm text-[#858796] mt-1">
+      Quản lý bác sĩ được quyền theo dõi hồ sơ sức khỏe của bạn — thu hồi được bất cứ lúc nào.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12"><mat-spinner diameter="48" /></div>
+  } @else {
+
+    <!-- Lời mời đang chờ -->
+    @if (pending().length > 0) {
+      <div class="sb-card mb-6">
+        <div class="px-5 py-3 border-b border-gray-100 font-bold text-[#5a5c69]">
+          Lời mời đang chờ ({{ pending().length }})
+        </div>
+        @for (link of pending(); track link.id; let last = $last) {
+          <div class="px-5 py-4" [class.border-b]="!last" [class.border-gray-100]="!last">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h3 class="font-bold text-[#5a5c69]">BS. {{ link.doctorName }}</h3>
+                <p class="text-sm text-[#858796]">{{ link.specialty }} — {{ link.workplace }}</p>
+                <p class="text-xs text-[#858796]">
+                  Hồ sơ: {{ link.profileOwnerName }} ·
+                  {{ link.initiatedBy === 'doctor' ? 'Bác sĩ mời bạn' : 'Bạn đã mời' }} ·
+                  {{ link.createdAt | date:'dd/MM/yyyy' }}
+                </p>
+              </div>
+              @if (link.initiatedBy === 'doctor') {
+                <div class="flex gap-2">
+                  <button mat-raised-button color="primary" (click)="toggleAcceptPanel(link)">
+                    <mat-icon>check</mat-icon> Chấp nhận
+                  </button>
+                  <button mat-stroked-button color="warn" [disabled]="acting()" (click)="reject(link)">
+                    Từ chối
+                  </button>
+                </div>
+              } @else {
+                <button mat-stroked-button [disabled]="acting()" (click)="revoke(link)">Hủy lời mời</button>
+              }
+            </div>
+
+            <!-- Panel chọn phạm vi đồng ý -->
+            @if (acceptingId() === link.id) {
+              <div class="mt-3 p-4 rounded-lg border border-[#4e73df]/30 bg-[#4e73df]/5">
+                <p class="text-sm font-bold text-[#5a5c69] mb-2">
+                  Cho phép BS. {{ link.doctorName }} xem những dữ liệu nào?
+                </p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                  @for (opt of scopeOptions; track opt[0]) {
+                    <button
+                      class="px-3 py-1 rounded-full text-sm border transition-colors"
+                      [class.bg-[#4e73df]]="acceptScopes().has(opt[0])"
+                      [class.text-white]="acceptScopes().has(opt[0])"
+                      [class.border-[#4e73df]]="acceptScopes().has(opt[0])"
+                      [class.border-gray-200]="!acceptScopes().has(opt[0])"
+                      [class.text-[#858796]]="!acceptScopes().has(opt[0])"
+                      (click)="toggleScope(opt[0])">
+                      {{ opt[1] }}
+                    </button>
+                  }
+                </div>
+                <p class="text-xs text-[#858796] mb-3">
+                  Khi bấm Đồng ý, hệ thống lưu lại bản ghi đồng thuận (thời điểm, phạm vi, thiết bị)
+                  theo Nghị định 13/2023/NĐ-CP. Bạn thu hồi được bất cứ lúc nào.
+                </p>
+                <button mat-raised-button color="primary" [disabled]="acting()" (click)="accept(link)">
+                  <mat-icon>verified_user</mat-icon> Tôi đồng ý
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Liên kết hiện có -->
+    <div class="sb-card mb-6">
+      <div class="px-5 py-3 border-b border-gray-100 font-bold text-[#5a5c69]">Liên kết của tôi</div>
+      @if (others().length === 0) {
+        <div class="text-center py-10 text-[#858796]">
+          <mat-icon class="block mb-3 text-gray-200 mx-auto" style="font-size:3rem;width:3rem;height:3rem">medical_information</mat-icon>
+          <p>Chưa có liên kết với bác sĩ nào.</p>
+        </div>
+      } @else {
+        @for (link of others(); track link.id; let last = $last) {
+          <div class="flex items-start px-5 py-4" [class.border-b]="!last" [class.border-gray-100]="!last">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 shrink-0 bg-[#1cc88a]/10">
+              <mat-icon style="font-size:1.2rem;width:1.2rem;height:1.2rem" class="text-[#1cc88a]">medical_services</mat-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                <h3 class="font-bold text-[#5a5c69]">BS. {{ link.doctorName }}</h3>
+                <span [class]="statusInfo(link.status).cls">{{ statusInfo(link.status).label }}</span>
+              </div>
+              <p class="text-sm text-[#858796]">{{ link.specialty }} — {{ link.workplace }} · Hồ sơ: {{ link.profileOwnerName }}</p>
+              @if (link.status === 'active') {
+                <div class="flex flex-wrap gap-1 mt-1">
+                  @for (s of link.consentScope; track s) {
+                    <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-[#5a5c69]">{{ scopeLabel(s) }}</span>
+                  }
+                </div>
+                <p class="text-xs text-[#858796] mt-1">Đồng ý lúc: {{ link.consentAt | date:'dd/MM/yyyy HH:mm' }}</p>
+              }
+            </div>
+            @if (link.status === 'active') {
+              <button mat-icon-button matTooltip="Thu hồi quyền xem" color="warn" (click)="revoke(link)">
+                <mat-icon>link_off</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Mời bác sĩ -->
+    <div class="sb-card p-5">
+      <h2 class="font-bold text-[#5a5c69] mb-3">Mời bác sĩ theo dõi</h2>
+      <div class="flex gap-2 mb-3">
+        <input [(ngModel)]="searchTerm" (keyup.enter)="search()"
+               placeholder="Tìm theo tên, chuyên khoa, số CCHN..."
+               class="flex-1 border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#4e73df]" />
+        <button mat-raised-button color="primary" [disabled]="searching()" (click)="search()">
+          <mat-icon>search</mat-icon> Tìm
+        </button>
+      </div>
+      @if (searching()) {
+        <div class="flex justify-center py-6"><mat-spinner diameter="32" /></div>
+      } @else {
+        @for (d of searchResults(); track d.userId; let last = $last) {
+          <div class="py-3" [class.border-b]="!last" [class.border-gray-100]="!last">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium text-[#5a5c69]">BS. {{ d.fullName }}</p>
+                <p class="text-xs text-[#858796]">{{ d.specialty }} — {{ d.workplace }} · CCHN: {{ d.licenseNumber }}</p>
+              </div>
+              <button mat-stroked-button color="primary" (click)="toggleInvitePanel(d)">
+                <mat-icon>person_add</mat-icon> Mời
+              </button>
+            </div>
+
+            <!-- Panel chọn phạm vi cho lời mời (consent ghi ngay lúc mời) -->
+            @if (invitingDoctorId() === d.userId) {
+              <div class="mt-3 p-4 rounded-lg border border-[#4e73df]/30 bg-[#4e73df]/5">
+                <p class="text-sm font-bold text-[#5a5c69] mb-2">
+                  Cho phép BS. {{ d.fullName }} xem những dữ liệu nào?
+                </p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                  @for (opt of scopeOptions; track opt[0]) {
+                    <button
+                      class="px-3 py-1 rounded-full text-sm border transition-colors"
+                      [class.bg-[#4e73df]]="inviteScopes().has(opt[0])"
+                      [class.text-white]="inviteScopes().has(opt[0])"
+                      [class.border-[#4e73df]]="inviteScopes().has(opt[0])"
+                      [class.border-gray-200]="!inviteScopes().has(opt[0])"
+                      [class.text-[#858796]]="!inviteScopes().has(opt[0])"
+                      (click)="toggleInviteScope(opt[0])">
+                      {{ opt[1] }}
+                    </button>
+                  }
+                </div>
+                <p class="text-xs text-[#858796] mb-3">
+                  Lời mời kèm sự đồng ý của bạn sẽ được gửi tới bác sĩ. Liên kết chỉ kích hoạt khi bác sĩ chấp nhận.
+                </p>
+                <button mat-raised-button color="primary" [disabled]="acting()" (click)="inviteDoctor(d)">
+                  <mat-icon>send</mat-icon> Gửi lời mời
+                </button>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>
