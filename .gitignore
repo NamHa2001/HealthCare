@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Secrets - khong commit
+backend/src/HealthCare.API/keys/
+*.pem
+
+# AI tooling config - khong commit
+**/.vscode/mcp.json
