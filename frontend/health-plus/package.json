@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "node ./node_modules/@angular/cli/bin/ng.js build 2>&1",
+    "prebuild": "node ./scripts/build-env-check.mjs 2>&1",
+    "build": "node ./node_modules/@angular/cli/bin/ng.js build --verbose 2>&1",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
