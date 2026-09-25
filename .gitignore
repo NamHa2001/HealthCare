@@ -372,3 +372,8 @@ appsettings.*.local.json
 
 # Cau hinh editor ca nhan
 **/.vscode/mcp.json
+
+# Tai lieu va file ngoai ma nguon - khong commit
+*.md
+.vscode/
+*.http
