@@ -33,7 +33,9 @@ public class UpdateNotificationPreferenceCommandHandler(IApplicationDbContext db
             vaccineReminder:    request.VaccineReminder,
             medicationReminder: request.MedicationReminder,
             followupReminder:   request.FollowupReminder,
-            healthAlert:        request.HealthAlert);
+            healthAlert:        request.HealthAlert,
+            doctorCriticalAlert: request.DoctorCriticalAlert,
+            doctorDailyDigest:   request.DoctorDailyDigest);
 
         await db.SaveChangesAsync(ct);
 
@@ -46,6 +48,8 @@ public class UpdateNotificationPreferenceCommandHandler(IApplicationDbContext db
             VaccineReminder:    pref.VaccineReminder,
             MedicationReminder: pref.MedicationReminder,
             FollowupReminder:   pref.FollowupReminder,
-            HealthAlert:        pref.HealthAlert);
+            HealthAlert:        pref.HealthAlert,
+            DoctorCriticalAlert: pref.DoctorCriticalAlert,
+            DoctorDailyDigest:   pref.DoctorDailyDigest);
     }
 }

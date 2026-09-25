@@ -34,9 +34,12 @@ public class VaccineReminderJob(ApplicationDbContext db, ILogger<VaccineReminder
 
             if (alreadyExists) continue;
 
+            // BUG-13: dấu trừ phải nằm trong từng nhánh — "-daysUntil == 1 ? 1 : 7" bị parse thành
+            // "(-daysUntil) == 1 ? 1 : 7" (unary minus ưu tiên cao hơn ==), luôn cho kết quả dương
+            // => AddDays(7) cộng thêm thay vì trừ, khiến remindAt luôn trễ sau ngày đến hạn.
             var remindAt = record.NextDueDate!.Value
                 .ToDateTime(new TimeOnly(8, 0))
-                .AddDays(-daysUntil == 1 ? 1 : 7);
+                .AddDays(daysUntil == 1 ? -1 : -7);
 
             if (remindAt <= DateTime.UtcNow) continue;
 

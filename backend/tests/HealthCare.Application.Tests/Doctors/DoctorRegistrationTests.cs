@@ -22,7 +22,7 @@ public class DoctorRegistrationTests
     public DoctorRegistrationTests()
     {
         _storage
-            .Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<StorageBucket>()))
             .ReturnsAsync(() => $"2026/07/{Guid.NewGuid()}.jpg");
     }
 
@@ -52,7 +52,7 @@ public class DoctorRegistrationTests
         result.Status.Should().Be("pending");
         db.DoctorProfiles.Single().Status.Should().Be(DoctorProfileStatus.Pending);
         db.DoctorProfiles.Single().LicenseDocKeys.Should().Contain(".jpg");
-        _storage.Verify(s => s.UploadAsync(It.IsAny<Stream>(), "cchn.jpg", "image/jpeg", It.IsAny<CancellationToken>()), Times.Once);
+        _storage.Verify(s => s.UploadAsync(It.IsAny<Stream>(), "cchn.jpg", "image/jpeg", It.IsAny<CancellationToken>(), StorageBucket.DoctorLicenses), Times.Once);
     }
 
     [Fact]

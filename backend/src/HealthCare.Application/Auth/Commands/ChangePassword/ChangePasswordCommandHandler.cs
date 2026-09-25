@@ -21,6 +21,13 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
             throw new ForbiddenException("Mật khẩu hiện tại không đúng.");
 
         user.UpdatePassword(BCrypt.Net.BCrypt.HashPassword(request.NewPassword));
+
+        var activeTokens = await _db.RefreshTokens
+            .Where(t => t.UserId == user.Id && !t.IsRevoked)
+            .ToListAsync(ct);
+        foreach (var token in activeTokens)
+            token.Revoke();
+
         await _db.SaveChangesAsync(ct);
 
         return Result.Success();

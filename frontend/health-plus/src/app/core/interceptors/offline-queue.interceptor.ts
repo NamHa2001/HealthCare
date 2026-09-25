@@ -17,13 +17,13 @@ export const offlineQueueInterceptor: HttpInterceptorFn = (req, next) => {
   const isExcluded = EXCLUDED_PATHS.some(p => req.url.includes(p));
 
   if (!offline.isOnline() && isMutating && !isExcluded) {
-    const authToken = req.headers.get('Authorization') ?? '';
-
+    // BUG-25: từng lưu kèm authToken lúc queue, nhưng khi replay request đi qua lại authInterceptor
+    // — interceptor đó luôn ghi đè header Authorization bằng token mới nhất, nên giá trị lưu ở đây
+    // chưa từng thực sự được dùng trên đường đi chính (chỉ vô dụng theo cách khác nếu đã logout).
     db.enqueue({
       method: req.method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
       url: req.urlWithParams,
       body: req.body,
-      authToken,
     }).catch(console.error);
 
     // Signal upstream that request was queued, not failed

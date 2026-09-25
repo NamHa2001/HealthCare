@@ -9,4 +9,6 @@ public record NotificationPreferenceDto(
     bool VaccineReminder,
     bool MedicationReminder,
     bool FollowupReminder,
-    bool HealthAlert);
+    bool HealthAlert,
+    bool DoctorCriticalAlert,
+    bool DoctorDailyDigest);

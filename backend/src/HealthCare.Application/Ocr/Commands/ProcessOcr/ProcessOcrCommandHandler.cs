@@ -1,3 +1,5 @@
+using System.Net.Http;
+using Microsoft.Extensions.Http;
 using HealthCare.Application.Common.Exceptions;
 using HealthCare.Application.Common.Interfaces;
 using HealthCare.Application.Ocr.DTOs;
@@ -11,7 +13,8 @@ public class ProcessOcrCommandHandler(
     IApplicationDbContext db,
     IFileStorageService storage,
     IOcrService ocrService,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IHttpClientFactory httpClientFactory)
     : IRequestHandler<ProcessOcrCommand, OcrResultDto>
 {
     public async Task<OcrResultDto> Handle(ProcessOcrCommand request, CancellationToken cancellationToken)
@@ -34,7 +37,8 @@ public class ProcessOcrCommandHandler(
         {
             var signedUrl = await storage.GetSignedUrlAsync(document.StorageKey, 10, cancellationToken);
 
-            using var http = new HttpClient();
+            // BUG-20: dùng IHttpClientFactory thay vì new HttpClient() mỗi request (tránh cạn socket/DNS caching sai).
+            var http = httpClientFactory.CreateClient();
             var imageBytes = await http.GetByteArrayAsync(signedUrl, cancellationToken);
             using var stream = new MemoryStream(imageBytes);
 

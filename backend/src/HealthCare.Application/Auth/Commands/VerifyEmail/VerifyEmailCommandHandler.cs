@@ -1,6 +1,8 @@
 ﻿using HealthCare.Application.Common.Exceptions;
 using HealthCare.Application.Common.Interfaces;
 using HealthCare.Application.Common.Models;
+using HealthCare.Application.Sharing.Common;
+using HealthCare.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +15,10 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Res
 
     public async Task<Result> Handle(VerifyEmailCommand request, CancellationToken ct)
     {
+        var tokenHash = ShareTokens.Hash(request.Token);
         var verification = await _db.EmailVerifications
             .Include(v => v.User)
-            .FirstOrDefaultAsync(v => v.Token == request.Token, ct);
+            .FirstOrDefaultAsync(v => v.TokenHash == tokenHash && v.Type == VerificationType.EmailVerify, ct);
 
         if (verification is null || !verification.IsValid)
             throw new ForbiddenException("Token không hợp lệ hoặc đã hết hạn.");

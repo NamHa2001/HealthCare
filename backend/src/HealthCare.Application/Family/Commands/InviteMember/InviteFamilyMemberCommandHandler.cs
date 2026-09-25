@@ -20,7 +20,7 @@ public class InviteFamilyMemberCommandHandler(
             ?? throw new UnauthorizedAccessException("Người dùng chưa đăng nhập.");
 
         var group = await db.FamilyGroups
-            .FirstOrDefaultAsync(g => g.AdminId == userId && !g.IsDeleted, ct)
+            .FirstOrDefaultAsync(g => g.AdminId == userId && g.DeletedAt == null, ct)
             ?? throw new NotFoundException("FamilyGroup", userId);
 
         var invitedEmail = request.Email.ToLowerInvariant();

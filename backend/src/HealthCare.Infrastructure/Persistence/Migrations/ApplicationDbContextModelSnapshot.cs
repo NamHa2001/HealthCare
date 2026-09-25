@@ -96,10 +96,15 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsUsed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -109,7 +114,7 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Token")
+                    b.HasIndex("TokenHash")
                         .IsUnique();
 
                     b.HasIndex("UserId");
@@ -165,14 +170,14 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("bit");
 
-                    b.Property<string>("ReplacedByToken")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -182,7 +187,7 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Token")
+                    b.HasIndex("TokenHash")
                         .IsUnique();
 
                     b.HasIndex("UserId");
@@ -1162,6 +1167,16 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("DoctorCriticalAlert")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("DoctorDailyDigest")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("EmailEnabled")
                         .HasColumnType("bit");
 
@@ -1494,6 +1509,24 @@ namespace HealthCare.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("VaccineScheduleRules", (string)null);
+                });
+
+            modelBuilder.Entity("HealthCare.Infrastructure.BackgroundJobs.JobLock", b =>
+                {
+                    b.Property<string>("JobName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LockedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("LockedUntil")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("JobName");
+
+                    b.ToTable("BackgroundJobLocks", (string)null);
                 });
 
             modelBuilder.Entity("HealthCare.Domain.Entities.Auth.EmailVerification", b =>

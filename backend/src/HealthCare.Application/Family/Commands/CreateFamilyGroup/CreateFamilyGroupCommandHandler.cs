@@ -16,7 +16,7 @@ public class CreateFamilyGroupCommandHandler(IApplicationDbContext db, ICurrentU
             ?? throw new UnauthorizedAccessException("Người dùng chưa đăng nhập.");
 
         var existing = await db.FamilyGroups
-            .AnyAsync(g => g.AdminId == userId && !g.IsDeleted, ct);
+            .AnyAsync(g => g.AdminId == userId && g.DeletedAt == null, ct);
 
         if (existing)
             throw new ConflictException("Bạn đã có nhóm gia đình rồi.");

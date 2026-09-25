@@ -12,4 +12,6 @@ public record UpdateNotificationPreferenceCommand(
     bool VaccineReminder,
     bool MedicationReminder,
     bool FollowupReminder,
-    bool HealthAlert) : IRequest<NotificationPreferenceDto>;
+    bool HealthAlert,
+    bool DoctorCriticalAlert,
+    bool DoctorDailyDigest) : IRequest<NotificationPreferenceDto>;

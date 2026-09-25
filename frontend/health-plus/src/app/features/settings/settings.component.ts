@@ -32,6 +32,8 @@ interface NotificationPreference {
   medicationReminder: boolean;
   followupReminder: boolean;
   healthAlert: boolean;
+  doctorCriticalAlert: boolean;
+  doctorDailyDigest: boolean;
 }
 
 @Component({
@@ -66,6 +68,8 @@ export class SettingsComponent implements OnInit {
   protected readonly showNew        = signal(false);
   protected readonly showConfirm    = signal(false);
 
+  protected readonly isDoctor = this.authStore.isDoctor;
+
   protected readonly timezones = [
     { value: 'Asia/Ho_Chi_Minh', label: 'Hà Nội / TP.HCM (UTC+7)' },
     { value: 'Asia/Bangkok',     label: 'Bangkok (UTC+7)' },
@@ -97,6 +101,8 @@ export class SettingsComponent implements OnInit {
     medicationReminder: [true],
     followupReminder:   [true],
     healthAlert:        [true],
+    doctorCriticalAlert: [true],
+    doctorDailyDigest:   [true],
   });
 
   async ngOnInit(): Promise<void> {

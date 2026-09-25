@@ -646,7 +646,10 @@ src/app/core/
 │
 ├── auth/
 │   ├── auth.service.ts                 ← login(), register(), logout(), refreshToken()
-│   │                                       Gọi API, lưu tokens vào localStorage (encrypted)
+│   │                                       Gọi API, lưu tokens vào localStorage (plaintext — BUG-24:
+│   │                                       đánh đổi phổ biến của SPA, mã hóa phía client chỉ là lớp
+│   │                                       phòng thủ yếu vì key luôn trích xuất được từ JS bundle;
+│   │                                       không thay thế được httpOnly cookie nếu cần bảo vệ thật)
 │   ├── auth.store.ts                   ← SignalStore: currentUser signal, isLoggedIn computed,
 │   │                                       isAdmin computed, roles signal
 │   ├── auth.guard.ts                   ← CanActivateFn: kiểm tra isLoggedIn, redirect /auth/login

@@ -27,7 +27,9 @@ public class ReminderProcessorJob(
 
                 if (prefs != null)
                 {
-                    var userLocalTime = TimeOnly.FromDateTime(DateTime.UtcNow);
+                    // BUG-16: trước đây gán thẳng từ UtcNow, không quy đổi theo prefs.Timezone —
+                    // quiet hours lệch 7 tiếng so với giờ Việt Nam.
+                    var userLocalTime = TimeOnly.FromDateTime(ToUserLocalTime(DateTime.UtcNow, prefs.Timezone));
                     if (prefs.IsInQuietHours(userLocalTime))
                     {
                         logger.LogInformation("Skipping reminder {Id} — quiet hours", reminder.Id);
@@ -82,5 +84,20 @@ public class ReminderProcessorJob(
         }
 
         await db.SaveChangesAsync();
+    }
+
+    private static DateTime ToUserLocalTime(DateTime utcNow, string timezone)
+    {
+        try
+        {
+            var tz = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+            return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            // Fallback: Asia/Ho_Chi_Minh = UTC+7 cố định (không có DST) — an toàn nếu hệ điều hành
+            // thiếu dữ liệu IANA timezone.
+            return utcNow.AddHours(7);
+        }
     }
 }

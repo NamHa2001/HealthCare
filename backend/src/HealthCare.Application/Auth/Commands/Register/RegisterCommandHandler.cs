@@ -1,8 +1,10 @@
 ﻿using HealthCare.Application.Common.Exceptions;
 using HealthCare.Application.Common.Interfaces;
 using HealthCare.Application.Common.Models;
+using HealthCare.Application.Sharing.Common;
 using HealthCare.Domain.Entities.Auth;
 using HealthCare.Domain.Entities.HealthProfile;
+using HealthCare.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -41,7 +43,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Gu
         _db.HealthProfiles.Add(HealthProfile.CreateForUser(user.Id));
 
         var token = Guid.NewGuid().ToString("N");
-        var verification = EmailVerification.Create(user.Id, token);
+        var verification = EmailVerification.Create(user.Id, ShareTokens.Hash(token), VerificationType.EmailVerify);
         _db.EmailVerifications.Add(verification);
 
         await _db.SaveChangesAsync(ct);

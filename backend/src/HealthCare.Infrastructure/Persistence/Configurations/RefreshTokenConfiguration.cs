@@ -9,10 +9,10 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
         builder.HasKey(rt => rt.Id);
-        builder.Property(rt => rt.Token).HasMaxLength(256).IsRequired();
-        builder.HasIndex(rt => rt.Token).IsUnique();
+        builder.Property(rt => rt.TokenHash).HasMaxLength(64).IsRequired();
+        builder.HasIndex(rt => rt.TokenHash).IsUnique();
         builder.Property(rt => rt.CreatedByIp).HasMaxLength(45);
-        builder.Property(rt => rt.ReplacedByToken).HasMaxLength(256);
+        builder.Property(rt => rt.ReplacedByTokenHash).HasMaxLength(64);
 
         builder.HasOne(rt => rt.User)
             .WithMany()

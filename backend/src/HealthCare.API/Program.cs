@@ -81,11 +81,14 @@ try
         });
     });
 
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? throw new InvalidOperationException("Thiếu cấu hình Cors:AllowedOrigins.");
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowFrontend", policy =>
         {
-            policy.SetIsOriginAllowed(_ => true) // Cho phép TẤT CẢ mọi origin
+            policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -95,6 +98,9 @@ try
     builder.Services.AddHealthChecks();
 
     // Rate limit cho endpoints public (link chia sẻ hồ sơ) — 30 req/phút/IP, chống dò token
+    // Môi trường "Test" (WebApplicationFactory) nới giới hạn: TestServer không phân biệt
+    // RemoteIpAddress giữa các request nên nhiều test case sẽ dồn chung 1 bucket và ăn 429 giả.
+    var isTestEnv = builder.Environment.EnvironmentName == "Test";
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -103,7 +109,18 @@ try
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 30,
+                    PermitLimit = isTestEnv ? int.MaxValue : 30,
+                    Window = TimeSpan.FromMinutes(1)
+                }));
+
+        // BUG-05: auth endpoints (register/login/forgot-password/...) không có rate limit —
+        // mở đường spam đăng ký, spam email reset, dò brute-force. Giới hạn theo IP.
+        options.AddPolicy("auth", httpContext =>
+            System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = isTestEnv ? int.MaxValue : 10,
                     Window = TimeSpan.FromMinutes(1)
                 }));
     });
@@ -126,6 +143,7 @@ try
             await PermissionSeeder.SeedAsync(db);
             await DrugCatalogSeeder.SeedAsync(db);
             await VaccineCatalogSeeder.SeedAsync(db);
+            await JobLockSeeder.SeedAsync(db);
         }
     }
 

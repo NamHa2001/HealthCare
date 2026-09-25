@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using HealthCare.Application.Common.Validators;
 
 namespace HealthCare.Application.Auth.Commands.ChangePassword;
 
@@ -7,6 +8,6 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
     public ChangePasswordCommandValidator()
     {
         RuleFor(x => x.CurrentPassword).NotEmpty();
-        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(8).MaximumLength(128);
+        RuleFor(x => x.NewPassword).NotEmpty().MustBeStrongPassword();
     }
 }

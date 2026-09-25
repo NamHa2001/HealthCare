@@ -23,5 +23,7 @@ public class FamilyGroupConfiguration : IEntityTypeConfiguration<FamilyGroup>
             .WithMany()
             .HasForeignKey(g => g.AdminId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasQueryFilter(g => g.DeletedAt == null);
     }
 }

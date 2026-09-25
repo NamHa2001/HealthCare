@@ -1,5 +1,6 @@
 using HealthCare.Application.Common.Exceptions;
 using HealthCare.Application.Common.Interfaces;
+using HealthCare.Domain.Entities.Audit;
 using HealthCare.Domain.Entities.Auth;
 using HealthCare.Domain.Enums;
 using MediatR;
@@ -39,6 +40,14 @@ public class ApproveDoctorCommandHandler(
         if (!hasRole)
             db.UserRoles.Add(UserRole.Create(profile.UserId, doctorRole.Id));
 
+        db.AuditLogs.Add(AuditLog.Create(
+            eventType: "admin_action",
+            resource: "doctor_verification",
+            action: "approve",
+            userId: currentUser.UserId,
+            targetUserId: profile.UserId,
+            entityId: profile.Id));
+
         await db.SaveChangesAsync(ct);
 
         try
@@ -68,6 +77,15 @@ public class RejectDoctorCommandHandler(
             ?? throw new NotFoundException("DoctorProfile", request.DoctorProfileId);
 
         profile.Reject(request.Reason, currentUser.UserId!.Value);
+
+        db.AuditLogs.Add(AuditLog.Create(
+            eventType: "admin_action",
+            resource: "doctor_verification",
+            action: "reject",
+            userId: currentUser.UserId,
+            targetUserId: profile.UserId,
+            entityId: profile.Id));
+
         await db.SaveChangesAsync(ct);
 
         try
@@ -118,6 +136,14 @@ public class SuspendDoctorCommandHandler(
             if (userRole is not null)
                 db.UserRoles.Remove(userRole);
         }
+
+        db.AuditLogs.Add(AuditLog.Create(
+            eventType: "admin_action",
+            resource: "doctor_verification",
+            action: "suspend",
+            userId: currentUser.UserId,
+            targetUserId: profile.UserId,
+            entityId: profile.Id));
 
         await db.SaveChangesAsync(ct);
 

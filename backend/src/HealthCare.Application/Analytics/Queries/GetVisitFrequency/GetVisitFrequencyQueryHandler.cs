@@ -24,8 +24,7 @@ public class GetVisitFrequencyQueryHandler(IApplicationDbContext db, ICurrentUse
         var visits = await db.MedicalVisits
             .AsNoTracking()
             .Where(v => v.HealthProfileId == profile.Id
-                && v.VisitDate >= DateOnly.FromDateTime(from)
-                && !v.IsDeleted)
+                && v.VisitDate >= DateOnly.FromDateTime(from))
             .Select(v => v.VisitDate)
             .ToListAsync(ct);
 

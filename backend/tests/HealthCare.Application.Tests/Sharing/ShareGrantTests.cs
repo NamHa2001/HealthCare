@@ -114,7 +114,7 @@ public class ShareGrantTests
             new CreateShareGrantCommand(profileId, ["measurements"], 24), CancellationToken.None);
 
         var act = () => new GetSharedVaccinesQueryHandler(db)
-            .Handle(new GetSharedVaccinesQuery(created.Token), CancellationToken.None);
+            .Handle(new GetSharedVaccinesQuery(created.Token, null), CancellationToken.None);
 
         await act.Should().ThrowAsync<NotFoundException>();
     }
@@ -128,7 +128,7 @@ public class ShareGrantTests
             new CreateShareGrantCommand(profileId, ["vaccines"], 24), CancellationToken.None);
 
         var result = await new GetSharedVaccinesQueryHandler(db)
-            .Handle(new GetSharedVaccinesQuery(created.Token), CancellationToken.None);
+            .Handle(new GetSharedVaccinesQuery(created.Token, null), CancellationToken.None);
 
         result.Should().BeEmpty(); // chưa có record nào nhưng không throw
     }

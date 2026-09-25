@@ -15,6 +15,10 @@ public class NotificationPreference : BaseEntity
     public bool FollowupReminder { get; private set; } = true;
     public bool HealthAlert { get; private set; } = true;
 
+    // DOCTOR_PORTAL.md §7.3 — mặc định bật, khuyến cáo không tắt (nhưng bác sĩ vẫn tự quyết định được)
+    public bool DoctorCriticalAlert { get; private set; } = true;
+    public bool DoctorDailyDigest { get; private set; } = true;
+
     public Auth.User User { get; private set; } = null!;
 
     private NotificationPreference() { }
@@ -31,7 +35,9 @@ public class NotificationPreference : BaseEntity
         bool vaccineReminder,
         bool medicationReminder,
         bool followupReminder,
-        bool healthAlert)
+        bool healthAlert,
+        bool doctorCriticalAlert,
+        bool doctorDailyDigest)
     {
         Timezone = timezone;
         QuietStartTime = quietStartTime;
@@ -42,6 +48,8 @@ public class NotificationPreference : BaseEntity
         MedicationReminder = medicationReminder;
         FollowupReminder = followupReminder;
         HealthAlert = healthAlert;
+        DoctorCriticalAlert = doctorCriticalAlert;
+        DoctorDailyDigest = doctorDailyDigest;
     }
 
     public bool IsInQuietHours(TimeOnly currentTime)

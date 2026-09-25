@@ -74,7 +74,7 @@ public class GetDoctorVerificationDetailQueryHandler(IApplicationDbContext db, I
         var keys = JsonSerializer.Deserialize<List<string>>(d.LicenseDocKeys) ?? [];
         var urls = new List<string>();
         foreach (var key in keys)
-            urls.Add(await storage.GetSignedUrlAsync(key, expiryMinutes: 5, ct));
+            urls.Add(await storage.GetSignedUrlAsync(key, expiryMinutes: 5, ct, StorageBucket.DoctorLicenses));
 
         return new DoctorVerificationDetailDto(
             d.Id, d.UserId, $"{d.User.FirstName} {d.User.LastName}", d.User.Email,

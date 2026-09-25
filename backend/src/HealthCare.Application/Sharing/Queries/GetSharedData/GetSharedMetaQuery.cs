@@ -14,10 +14,7 @@ public class GetSharedMetaQueryHandler(IApplicationDbContext db)
 {
     public async Task<SharedMetaDto> Handle(GetSharedMetaQuery request, CancellationToken ct)
     {
-        var grant = await SharedAccess.GetGrantAsync(db, request.Token, null, ct);
-
-        grant.RecordAccess(request.IpAddress);
-        await db.SaveChangesAsync(ct);
+        var grant = await SharedAccess.GetGrantAsync(db, request.Token, null, request.IpAddress, ct);
 
         var ownerName = await ResolveOwnerNameAsync(grant.HealthProfileId, ct);
         return new SharedMetaDto(ownerName, SharedAccess.GetScopes(grant), grant.ExpiresAt);

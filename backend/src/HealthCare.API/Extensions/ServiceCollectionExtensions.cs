@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using HealthCare.API.Middleware;
 using HealthCare.Application.Common.Interfaces;
+using HealthCare.Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +25,7 @@ public static class ServiceCollectionExtensions
                 if (string.IsNullOrEmpty(publicKeyPath))
                     throw new InvalidOperationException("Jwt:PublicKeyPath configuration is missing.");
 
-                var pem = File.ReadAllText(publicKeyPath);
+                var pem = PemKeyLoader.ReadPem(publicKeyPath);
                 var rsa = RSA.Create();
                 rsa.ImportFromPem(pem);
 

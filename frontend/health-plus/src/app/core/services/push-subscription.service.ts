@@ -1,5 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
+import { environment } from '../../../environments/environment';
 import { ApiService } from './api.service';
 
 export interface PushSubscribeRequest {
@@ -7,21 +10,45 @@ export interface PushSubscribeRequest {
   deviceType: string;
 }
 
+/**
+ * BUG-22: trước đây không có tích hợp Firebase SDK thật — gửi lên backend một
+ * crypto.randomUUID() giả danh "fcmToken", Firebase Admin SDK phía backend chắc chắn
+ * từ chối token này nên push không bao giờ hoạt động cho bất kỳ ai. Giờ dùng
+ * firebase/messaging thật: getToken() với VAPID key + service worker riêng cho FCM.
+ */
 @Injectable({ providedIn: 'root' })
 export class PushSubscriptionService {
   private readonly api = inject(ApiService);
+  private app: FirebaseApp | null = null;
+  private messaging: Messaging | null = null;
 
   async register(): Promise<void> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!environment.firebase?.apiKey || !environment.firebase?.vapidKey) {
+      // Chưa cấu hình Firebase project — bỏ qua thay vì gửi token giả lên backend.
+      return;
+    }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') return;
 
-      // Generate a stable device token based on browser fingerprint
-      const token = await this.getDeviceToken(registration);
+      const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/firebase-cloud-messaging-push-scope',
+      });
+
+      const messaging = this.getMessagingInstance();
+      const token = await getToken(messaging, {
+        vapidKey: environment.firebase.vapidKey,
+        serviceWorkerRegistration: swRegistration,
+      });
+
       if (!token) return;
+
+      onMessage(messaging, () => {
+        // Foreground push — UI hiện tại đã có polling/refresh riêng cho dữ liệu,
+        // ở đây chỉ cần không throw để không phá luồng.
+      });
 
       await firstValueFrom(
         this.api.post<void>('notifications/push-subscribe', {
@@ -30,7 +57,7 @@ export class PushSubscriptionService {
         })
       );
     } catch {
-      // Push subscription is optional — silently fail
+      // Push subscription là optional — lỗi (bị chặn permission, browser không hỗ trợ, ...) bỏ qua âm thầm.
     }
   }
 
@@ -42,22 +69,12 @@ export class PushSubscriptionService {
     } catch { /* silent */ }
   }
 
-  private async getDeviceToken(registration: ServiceWorkerRegistration): Promise<string | null> {
-    try {
-      // Use existing push subscription endpoint or derive from subscription
-      const sub = await registration.pushManager.getSubscription();
-      if (sub) return btoa(sub.endpoint).slice(0, 255);
-
-      // No existing subscription — generate a stable browser ID as fallback
-      const stored = localStorage.getItem('hp_device_token');
-      if (stored) return stored;
-
-      const id = crypto.randomUUID();
-      localStorage.setItem('hp_device_token', id);
-      return id;
-    } catch {
-      return null;
+  private getMessagingInstance(): Messaging {
+    if (!this.messaging) {
+      this.app = initializeApp(environment.firebase);
+      this.messaging = getMessaging(this.app);
     }
+    return this.messaging;
   }
 
   private getDeviceType(): string {

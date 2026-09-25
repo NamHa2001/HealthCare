@@ -8,18 +8,27 @@ namespace HealthCare.Infrastructure.Services.Storage;
 public class MinioFileStorageService : IFileStorageService
 {
     private readonly IMinioClient _minio;
-    private readonly string _bucket;
+    private readonly string _documentsBucket;
+    private readonly string _doctorLicensesBucket;
 
     public MinioFileStorageService(IMinioClient minio, IConfiguration config)
     {
         _minio = minio;
-        _bucket = config["Storage:BucketDocuments"] ?? config["Storage:BucketName"] ?? "health-documents";
+        _documentsBucket = config["Storage:BucketDocuments"] ?? config["Storage:BucketName"] ?? "health-documents";
+        _doctorLicensesBucket = config["Storage:BucketDoctorLicenses"] ?? "doctor-licenses";
     }
 
-    public async Task<string> UploadAsync(
-        Stream fileStream, string fileName, string contentType, CancellationToken ct = default)
+    private string ResolveBucket(StorageBucket bucket) => bucket switch
     {
-        await EnsureBucketExistsAsync(ct);
+        StorageBucket.DoctorLicenses => _doctorLicensesBucket,
+        _ => _documentsBucket,
+    };
+
+    public async Task<string> UploadAsync(
+        Stream fileStream, string fileName, string contentType, CancellationToken ct = default, StorageBucket bucket = StorageBucket.Documents)
+    {
+        var bucketName = ResolveBucket(bucket);
+        await EnsureBucketExistsAsync(bucketName, ct);
 
         var ext = Path.GetExtension(fileName);
         var storageKey = $"{DateTime.UtcNow:yyyy/MM}/{Guid.NewGuid()}{ext}";
@@ -27,7 +36,7 @@ public class MinioFileStorageService : IFileStorageService
         var size = fileStream.CanSeek ? fileStream.Length : -1;
 
         var args = new PutObjectArgs()
-            .WithBucket(_bucket)
+            .WithBucket(bucketName)
             .WithObject(storageKey)
             .WithStreamData(fileStream)
             .WithObjectSize(size)
@@ -38,31 +47,31 @@ public class MinioFileStorageService : IFileStorageService
     }
 
     public async Task<string> GetSignedUrlAsync(
-        string storageKey, int expiryMinutes = 60, CancellationToken ct = default)
+        string storageKey, int expiryMinutes = 60, CancellationToken ct = default, StorageBucket bucket = StorageBucket.Documents)
     {
         var args = new PresignedGetObjectArgs()
-            .WithBucket(_bucket)
+            .WithBucket(ResolveBucket(bucket))
             .WithObject(storageKey)
             .WithExpiry(expiryMinutes * 60);
 
         return await _minio.PresignedGetObjectAsync(args);
     }
 
-    public async Task DeleteAsync(string storageKey, CancellationToken ct = default)
+    public async Task DeleteAsync(string storageKey, CancellationToken ct = default, StorageBucket bucket = StorageBucket.Documents)
     {
         var args = new RemoveObjectArgs()
-            .WithBucket(_bucket)
+            .WithBucket(ResolveBucket(bucket))
             .WithObject(storageKey);
 
         await _minio.RemoveObjectAsync(args, ct);
     }
 
-    private async Task EnsureBucketExistsAsync(CancellationToken ct)
+    private async Task EnsureBucketExistsAsync(string bucketName, CancellationToken ct)
     {
-        var existsArgs = new BucketExistsArgs().WithBucket(_bucket);
+        var existsArgs = new BucketExistsArgs().WithBucket(bucketName);
         if (!await _minio.BucketExistsAsync(existsArgs, ct))
         {
-            var makeArgs = new MakeBucketArgs().WithBucket(_bucket);
+            var makeArgs = new MakeBucketArgs().WithBucket(bucketName);
             await _minio.MakeBucketAsync(makeArgs, ct);
         }
     }

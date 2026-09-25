@@ -50,7 +50,8 @@ public class MeasurementRecordedEventHandler : INotificationHandler<MeasurementR
 
         if (notification.Bmi.HasValue && notification.Bmi >= 23.0m)
         {
-            var severity = notification.Bmi >= 25.0m ? AlertSeverity.Warning : AlertSeverity.Warning;
+            // BUG-18: cả 2 nhánh từng cùng là Warning (nhánh chết) — Béo phì (≥25) phải nặng hơn Thừa cân.
+            var severity = notification.Bmi >= 25.0m ? AlertSeverity.Critical : AlertSeverity.Warning;
             var msg = notification.Bmi >= 25.0m
                 ? $"BMI {notification.Bmi}: Béo phì (ngưỡng châu Á ≥25.0)"
                 : $"BMI {notification.Bmi}: Thừa cân (ngưỡng châu Á ≥23.0)";

@@ -18,6 +18,9 @@ public class NotificationPreferenceConfiguration : IEntityTypeConfiguration<Noti
             .HasMaxLength(50)
             .HasDefaultValue("Asia/Ho_Chi_Minh");
 
+        builder.Property(x => x.DoctorCriticalAlert).HasDefaultValue(true);
+        builder.Property(x => x.DoctorDailyDigest).HasDefaultValue(true);
+
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)

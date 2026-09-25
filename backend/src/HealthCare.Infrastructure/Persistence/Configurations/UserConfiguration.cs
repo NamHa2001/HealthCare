@@ -22,5 +22,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(u => u.UserRoles)
             .WithOne(ur => ur.User)
             .HasForeignKey(ur => ur.UserId);
+
+        builder.HasQueryFilter(u => u.DeletedAt == null);
     }
 }

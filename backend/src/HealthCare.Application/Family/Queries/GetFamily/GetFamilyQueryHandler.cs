@@ -15,13 +15,13 @@ public class GetFamilyQueryHandler(IApplicationDbContext db, ICurrentUser curren
 
         var group = await db.FamilyGroups
             .Include(g => g.Members)
-            .Where(g => g.AdminId == userId && !g.IsDeleted)
+            .Where(g => g.AdminId == userId && g.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
 
         if (group is null) return null;
 
         var members = group.Members
-            .Where(m => !m.IsDeleted)
+            .Where(m => m.DeletedAt == null)
             .Select(m => new FamilyMemberDto(
                 m.Id,
                 m.FamilyGroupId,

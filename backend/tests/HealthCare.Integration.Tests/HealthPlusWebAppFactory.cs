@@ -11,9 +11,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HealthCare.Integration.Tests;
 
+// BUG-12/BUG-31: chạy trên SQL Server thật (không phải InMemory) — InMemory thực thi C# trực tiếp nên
+// không bao giờ lộ lỗi dịch LINQ sang SQL (vd. BUG-01: !x.IsDeleted không dịch được trên SqlServer).
 public class HealthPlusWebAppFactory : WebApplicationFactory<Program>
 {
-    private readonly string _dbName = $"TestDb_{Guid.NewGuid()}";
+    private readonly string _dbName = $"HealthPlusTest_{Guid.NewGuid():N}";
+    private string ConnectionString =>
+        $"Server=.;Database={_dbName};TrustServerCertificate=True;Trusted_Connection=True;";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -24,7 +28,7 @@ public class HealthPlusWebAppFactory : WebApplicationFactory<Program>
             var keysDir = FindKeysDirectory();
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Default"] = "Server=.;Database=Test;TrustServerCertificate=True;Integrated Security=true;",
+                ["ConnectionStrings:Default"] = ConnectionString,
                 ["Jwt:PrivateKeyPath"]    = Path.Combine(keysDir, "jwt_private.pem"),
                 ["Jwt:PublicKeyPath"]     = Path.Combine(keysDir, "jwt_public.pem"),
                 ["Jwt:Issuer"]            = "https://test.healthplus.local",
@@ -64,13 +68,25 @@ public class HealthPlusWebAppFactory : WebApplicationFactory<Program>
             foreach (var d in efDescriptors)
                 services.Remove(d);
 
-            var dbName = _dbName;
             services.AddDbContext<ApplicationDbContext>(opts =>
-                opts.UseInMemoryDatabase(dbName));
+                opts.UseSqlServer(ConnectionString));
 
             services.AddScoped<IApplicationDbContext>(
                 sp => sp.GetRequiredService<ApplicationDbContext>());
         });
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+
+        // Dọn DB test riêng của lần chạy này (mỗi factory một DB tên GUID, không đụng DB dev).
+        await using var connection = new Microsoft.Data.SqlClient.SqlConnection(
+            "Server=.;Database=master;TrustServerCertificate=True;Trusted_Connection=True;");
+        await connection.OpenAsync();
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"IF DB_ID('{_dbName}') IS NOT NULL BEGIN ALTER DATABASE [{_dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{_dbName}]; END";
+        await cmd.ExecuteNonQueryAsync();
     }
 
     private static string FindKeysDirectory()

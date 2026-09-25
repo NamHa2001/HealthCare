@@ -19,5 +19,7 @@ public class FamilyInvitationConfiguration : IEntityTypeConfiguration<FamilyInvi
             .WithMany()
             .HasForeignKey(i => i.FamilyGroupId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(i => i.DeletedAt == null);
     }
 }

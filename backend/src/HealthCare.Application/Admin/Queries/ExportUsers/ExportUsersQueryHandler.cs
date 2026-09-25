@@ -11,7 +11,7 @@ public class ExportUsersQueryHandler(IApplicationDbContext db)
     public async Task<byte[]> Handle(ExportUsersQuery request, CancellationToken ct)
     {
         var users = await db.Users
-            .Where(u => !u.IsDeleted)
+            .Where(u => u.DeletedAt == null)
             .OrderBy(u => u.CreatedAt)
             .Select(u => new
             {

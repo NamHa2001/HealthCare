@@ -40,8 +40,9 @@ public class BloodPressureLog : BaseEntity
             Notes = notes
         };
 
-        // Tự động raise event nếu vượt ngưỡng (SRS: >140 systolic hoặc >90 diastolic)
-        if (systolic > 140 || diastolic > 90)
+        // BUG-17: đồng bộ ngưỡng với HealthCalculations.IsBpAlert/GetBpLabel (>=140/>=90) —
+        // trước đây dùng >strict nên đúng biên 140/90 hiển thị "Cao độ 2" nhưng không tạo alert.
+        if (systolic >= 140 || diastolic >= 90)
             log.AddDomainEvent(new BloodPressureAlertEvent(healthProfileId, log.Id, systolic, diastolic));
 
         return log;

@@ -14,14 +14,14 @@ namespace HealthCare.Application.Sharing.Queries.GetSharedData;
 
 // Các endpoint dữ liệu read-only cho link chia sẻ — tái dùng DTO của từng module.
 
-public record GetSharedMeasurementsQuery(string Token) : IRequest<IReadOnlyList<HealthMeasurementDto>>;
+public record GetSharedMeasurementsQuery(string Token, string? IpAddress) : IRequest<IReadOnlyList<HealthMeasurementDto>>;
 
 public class GetSharedMeasurementsQueryHandler(IApplicationDbContext db, IMapper mapper)
     : IRequestHandler<GetSharedMeasurementsQuery, IReadOnlyList<HealthMeasurementDto>>
 {
     public async Task<IReadOnlyList<HealthMeasurementDto>> Handle(GetSharedMeasurementsQuery request, CancellationToken ct)
     {
-        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Measurements, ct);
+        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Measurements, request.IpAddress, ct);
 
         return await db.HealthMeasurements
             .Where(m => m.HealthProfileId == grant.HealthProfileId)
@@ -32,14 +32,14 @@ public class GetSharedMeasurementsQueryHandler(IApplicationDbContext db, IMapper
     }
 }
 
-public record GetSharedBloodPressureQuery(string Token) : IRequest<IReadOnlyList<BloodPressureLogDto>>;
+public record GetSharedBloodPressureQuery(string Token, string? IpAddress) : IRequest<IReadOnlyList<BloodPressureLogDto>>;
 
 public class GetSharedBloodPressureQueryHandler(IApplicationDbContext db, IMapper mapper)
     : IRequestHandler<GetSharedBloodPressureQuery, IReadOnlyList<BloodPressureLogDto>>
 {
     public async Task<IReadOnlyList<BloodPressureLogDto>> Handle(GetSharedBloodPressureQuery request, CancellationToken ct)
     {
-        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.BloodPressure, ct);
+        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.BloodPressure, request.IpAddress, ct);
 
         return await db.BloodPressureLogs
             .Where(b => b.HealthProfileId == grant.HealthProfileId)
@@ -50,14 +50,14 @@ public class GetSharedBloodPressureQueryHandler(IApplicationDbContext db, IMappe
     }
 }
 
-public record GetSharedVisitsQuery(string Token) : IRequest<IReadOnlyList<MedicalVisitListDto>>;
+public record GetSharedVisitsQuery(string Token, string? IpAddress) : IRequest<IReadOnlyList<MedicalVisitListDto>>;
 
 public class GetSharedVisitsQueryHandler(IApplicationDbContext db, IMapper mapper)
     : IRequestHandler<GetSharedVisitsQuery, IReadOnlyList<MedicalVisitListDto>>
 {
     public async Task<IReadOnlyList<MedicalVisitListDto>> Handle(GetSharedVisitsQuery request, CancellationToken ct)
     {
-        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Visits, ct);
+        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Visits, request.IpAddress, ct);
 
         return await db.MedicalVisits
             .Where(v => v.HealthProfileId == grant.HealthProfileId)
@@ -68,14 +68,14 @@ public class GetSharedVisitsQueryHandler(IApplicationDbContext db, IMapper mappe
     }
 }
 
-public record GetSharedMedicationsQuery(string Token) : IRequest<IReadOnlyList<MedicationDto>>;
+public record GetSharedMedicationsQuery(string Token, string? IpAddress) : IRequest<IReadOnlyList<MedicationDto>>;
 
 public class GetSharedMedicationsQueryHandler(IApplicationDbContext db, IMapper mapper)
     : IRequestHandler<GetSharedMedicationsQuery, IReadOnlyList<MedicationDto>>
 {
     public async Task<IReadOnlyList<MedicationDto>> Handle(GetSharedMedicationsQuery request, CancellationToken ct)
     {
-        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Medications, ct);
+        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Medications, request.IpAddress, ct);
 
         return await db.Medications
             .Where(m => m.HealthProfileId == grant.HealthProfileId)
@@ -86,18 +86,20 @@ public class GetSharedMedicationsQueryHandler(IApplicationDbContext db, IMapper 
     }
 }
 
-public record GetSharedVaccinesQuery(string Token) : IRequest<IReadOnlyList<VaccineRecordDto>>;
+public record GetSharedVaccinesQuery(string Token, string? IpAddress) : IRequest<IReadOnlyList<VaccineRecordDto>>;
 
 public class GetSharedVaccinesQueryHandler(IApplicationDbContext db)
     : IRequestHandler<GetSharedVaccinesQuery, IReadOnlyList<VaccineRecordDto>>
 {
     public async Task<IReadOnlyList<VaccineRecordDto>> Handle(GetSharedVaccinesQuery request, CancellationToken ct)
     {
-        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Vaccines, ct);
+        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Vaccines, request.IpAddress, ct);
 
+        // BUG-11e: thiếu Take() giới hạn so với các query shared khác.
         var records = await db.VaccineRecords
             .Where(r => r.HealthProfileId == grant.HealthProfileId)
             .OrderByDescending(r => r.InjectionDate)
+            .Take(200)
             .ToListAsync(ct);
 
         return records.Select(MapToDto).ToList();

@@ -33,15 +33,24 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IEmailService, SmtpEmailService>();
         services.AddScoped<IEncryptionService, EncryptionService>();
 
-        // MinIO — file storage
-        var storageUri = new Uri(config["Storage:Endpoint"] ?? "http://localhost:9000");
-        services.AddMinio(client => client
-            .WithEndpoint(storageUri.Host, storageUri.Port)
-            .WithCredentials(
-                config["Storage:AccessKey"] ?? "minioadmin",
-                config["Storage:SecretKey"] ?? "minioadmin")
-            .WithSSL(storageUri.Scheme == "https"));
-        services.AddScoped<IFileStorageService, MinioFileStorageService>();
+        // File storage — "Minio" (mặc định, dev + docker) hoặc "Local" (ổ đĩa máy chủ, cho host không có MinIO)
+        services.AddHttpContextAccessor();
+        services.AddScoped<LocalFileStorageService>();
+        if (string.Equals(config["Storage:Provider"], "Local", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IFileStorageService>(sp => sp.GetRequiredService<LocalFileStorageService>());
+        }
+        else
+        {
+            var storageUri = new Uri(config["Storage:Endpoint"] ?? "http://localhost:9000");
+            services.AddMinio(client => client
+                .WithEndpoint(storageUri.Host, storageUri.Port)
+                .WithCredentials(
+                    config["Storage:AccessKey"] ?? "minioadmin",
+                    config["Storage:SecretKey"] ?? "minioadmin")
+                .WithSSL(storageUri.Scheme == "https"));
+            services.AddScoped<IFileStorageService, MinioFileStorageService>();
+        }
 
         // OCR services — Google Vision (primary) + EasyOCR (fallback) + Proxy (circuit breaker)
         services.AddHttpClient();
@@ -59,6 +68,8 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ReminderProcessorJob>();
         services.AddScoped<VaccineReminderJob>();
         services.AddScoped<DoctorDigestJob>();
+        services.AddScoped<ShareGrantCleanupJob>();
+        services.AddScoped<MedicationLogGeneratorJob>();
         services.AddHostedService<JobSchedulerHostedService>();
 
         return services;

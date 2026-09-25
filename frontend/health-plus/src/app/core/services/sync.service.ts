@@ -1,38 +1,21 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { IndexedDbService, SyncQueueItem } from '../db/indexeddb.service';
 import { OfflineService } from './offline.service';
-import { ApiService } from './api.service';
 
-export interface SyncOperation {
-  operation: 'create' | 'update' | 'delete';
-  entityType: string;
-  entityId: string;
-  payload: unknown;
-  clientVersion: number;
-  clientTimestamp: number;
-}
-
-export interface SyncChange {
-  entityType: string;
-  entityId: string;
-  operation: string;
-  data: unknown;
-  serverTimestamp: string;
-}
-
-export interface PullSyncResponse {
-  changes: SyncChange[];
-  serverTimestamp: number;
-}
-
+/**
+ * BUG-23: chỉ hàng đợi mutation offline (interceptor + processSyncQueue/replayRequest) thực sự
+ * hoạt động. Giao thức sync 2 chiều thật qua Lamport clock (pushToServer/pullFromServer gọi
+ * /sync/push, /sync/pull — backend đã dựng sẵn và có test) chưa từng được frontend gọi tới.
+ * Sprint 7 Offline First vẫn "chưa bắt đầu" theo PROGRESS.md — đã xóa phần khung sườn dở dang
+ * ở đây để tránh gây nhầm lẫn; xem SyncControllerTests.cs phía backend nếu làm tiếp sau này.
+ */
 @Injectable({ providedIn: 'root' })
 export class SyncService {
   private readonly db = inject(IndexedDbService);
   private readonly http = inject(HttpClient);
   private readonly offline = inject(OfflineService);
-  private readonly api = inject(ApiService);
 
   private syncing = false;
 
@@ -54,24 +37,13 @@ export class SyncService {
     }
   }
 
-  async pushToServer(operations: SyncOperation[]): Promise<void> {
-    await firstValueFrom(this.api.post<void>('sync/push', { operations }));
-  }
-
-  async pullFromServer(since: number): Promise<PullSyncResponse> {
-    return firstValueFrom(this.api.get<PullSyncResponse>('sync/pull', { since }));
-  }
-
   private async replayRequest(item: SyncQueueItem): Promise<void> {
     try {
-      const headers = new HttpHeaders({
-        'Content-Type': 'application/json',
-        Authorization: item.authToken,
-      });
-
+      // BUG-25: không cần tự set header Authorization — request này vẫn đi qua authInterceptor
+      // như mọi request khác trong app, interceptor tự gắn access token mới nhất.
       await firstValueFrom(
         this.http.request(item.method, item.url, {
-          headers,
+          headers: { 'Content-Type': 'application/json' },
           body: item.body ?? undefined,
         })
       );

@@ -1,5 +1,6 @@
 ﻿using HealthCare.Application.Common.Interfaces;
 using HealthCare.Application.Common.Models;
+using HealthCare.Application.Sharing.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,8 +13,9 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result>
 
     public async Task<Result> Handle(LogoutCommand request, CancellationToken ct)
     {
+        var tokenHash = ShareTokens.Hash(request.RefreshToken);
         var token = await _db.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken, ct);
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, ct);
 
         if (token?.IsActive == true) token.Revoke();
 

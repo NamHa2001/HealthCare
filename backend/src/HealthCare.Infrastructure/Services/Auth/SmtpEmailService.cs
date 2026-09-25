@@ -44,6 +44,16 @@ public class SmtpEmailService : IEmailService
             ct);
     }
 
+    public async Task SendSecurityAlertAsync(string toEmail, string name, string reason, CancellationToken ct = default)
+    {
+        await SendAsync(toEmail, "⚠ Cảnh báo bảo mật tài khoản — Health+",
+            $"<p>Xin chào {name},</p>" +
+            $"<p>Hệ thống phát hiện dấu hiệu bất thường trên tài khoản của bạn: <strong>{reason}</strong></p>" +
+            $"<p>Vì lý do an toàn, toàn bộ phiên đăng nhập hiện tại đã bị hủy. Vui lòng đăng nhập lại và đổi mật khẩu nếu bạn không thực hiện hành động này.</p>" +
+            $"<p><small>Health+ Security Team</small></p>",
+            ct);
+    }
+
     public async Task SendFamilyInviteAsync(string toEmail, string inviterName, string groupName, string token, CancellationToken ct = default)
     {
         var link = $"{_config["App:FrontendUrl"]}/family/accept-invite?token={token}";

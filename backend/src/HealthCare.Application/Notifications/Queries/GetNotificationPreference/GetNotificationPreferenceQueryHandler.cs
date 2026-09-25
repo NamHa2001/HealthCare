@@ -36,5 +36,7 @@ public class GetNotificationPreferenceQueryHandler(IApplicationDbContext db, ICu
         VaccineReminder:    p.VaccineReminder,
         MedicationReminder: p.MedicationReminder,
         FollowupReminder:   p.FollowupReminder,
-        HealthAlert:        p.HealthAlert);
+        HealthAlert:        p.HealthAlert,
+        DoctorCriticalAlert: p.DoctorCriticalAlert,
+        DoctorDailyDigest:   p.DoctorDailyDigest);
 }

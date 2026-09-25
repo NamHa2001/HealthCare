@@ -2,6 +2,7 @@
 using HealthCare.Application.Common.Interfaces;
 using HealthCare.Application.Common.Models;
 using HealthCare.Application.Auth.DTOs;
+using HealthCare.Application.Sharing.Common;
 using RefreshTokenEntity = HealthCare.Domain.Entities.Auth.RefreshToken;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,11 @@ namespace HealthCare.Application.Auth.Commands.Login;
 
 public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResponseDto>>
 {
+    // BUG-11a: BCrypt.Verify (~100ms) chỉ chạy khi email tồn tại — chênh lệch thời gian phản hồi
+    // giữa "email không tồn tại" và "sai mật khẩu" để lộ việc tài khoản có tồn tại hay không.
+    // Hash giả để verify tốn thời gian tương đương ngay cả khi user không tồn tại.
+    private static readonly string DummyPasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString());
+
     private readonly IApplicationDbContext _db;
     private readonly ITokenService _token;
     private readonly IEmailService _email;
@@ -34,9 +40,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant(), ct);
 
-        // Ambiguous error — don't reveal whether email exists
+        // Ambiguous error — don't reveal whether email exists (timing lẫn message)
         if (user is null)
+        {
+            BCrypt.Net.BCrypt.Verify(request.Password, DummyPasswordHash);
             throw new ForbiddenException("Email hoặc mật khẩu không đúng.");
+        }
 
         // SRS §1.2: lock check
         if (user.IsLockedOut())
@@ -71,7 +80,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var accessToken = _token.GenerateAccessToken(user, roles);
         var refreshTokenValue = _token.GenerateRefreshToken();
 
-        var refreshToken = RefreshTokenEntity.Create(user.Id, refreshTokenValue, 7, request.IpAddress);
+        var refreshToken = RefreshTokenEntity.Create(user.Id, ShareTokens.Hash(refreshTokenValue), 7, request.IpAddress);
         _db.RefreshTokens.Add(refreshToken);
 
         await _db.SaveChangesAsync(ct);
@@ -80,7 +89,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         {
             AccessToken = accessToken,
             RefreshToken = refreshTokenValue,
-            ExpiresIn = 900,
+            ExpiresIn = _token.AccessTokenExpirySeconds,
             User = new UserInfoDto
             {
                 Id = user.Id,

@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HealthCare.Application.Sharing.Queries.GetSharedData;
 
-public record GetSharedProfileQuery(string Token) : IRequest<SharedProfileDto>;
+public record GetSharedProfileQuery(string Token, string? IpAddress) : IRequest<SharedProfileDto>;
 
 public class GetSharedProfileQueryHandler(IApplicationDbContext db)
     : IRequestHandler<GetSharedProfileQuery, SharedProfileDto>
 {
     public async Task<SharedProfileDto> Handle(GetSharedProfileQuery request, CancellationToken ct)
     {
-        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Profile, ct);
+        var grant = await SharedAccess.GetGrantAsync(db, request.Token, ShareScopes.Profile, request.IpAddress, ct);
 
         var profile = await db.HealthProfiles.FirstAsync(p => p.Id == grant.HealthProfileId, ct);
 

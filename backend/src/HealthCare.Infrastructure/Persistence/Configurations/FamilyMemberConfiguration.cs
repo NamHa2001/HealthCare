@@ -30,5 +30,7 @@ public class FamilyMemberConfiguration : IEntityTypeConfiguration<FamilyMember>
             .WithMany()
             .HasForeignKey(m => m.ManagedBy)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasQueryFilter(m => m.DeletedAt == null);
     }
 }

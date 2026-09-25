@@ -219,13 +219,29 @@
                   </div>
                   <mat-slide-toggle formControlName="followupReminder" color="primary" />
                 </div>
-                <div class="flex items-center justify-between py-2">
+                <div class="flex items-center justify-between py-2" [class.border-b]="isDoctor()" [class.border-gray-100]="isDoctor()">
                   <div>
                     <p class="text-sm font-medium text-[#3a3b45]">Cảnh báo sức khỏe</p>
                     <p class="text-xs text-[#858796]">Thông báo khi chỉ số sức khỏe bất thường</p>
                   </div>
                   <mat-slide-toggle formControlName="healthAlert" color="primary" />
                 </div>
+                @if (isDoctor()) {
+                  <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                    <div>
+                      <p class="text-sm font-medium text-[#3a3b45]">Cảnh báo khẩn từ bệnh nhân liên kết</p>
+                      <p class="text-xs text-[#858796]">Gửi ngay khi bệnh nhân có chỉ số nghiêm trọng (khuyến cáo không tắt)</p>
+                    </div>
+                    <mat-slide-toggle formControlName="doctorCriticalAlert" color="primary" />
+                  </div>
+                  <div class="flex items-center justify-between py-2">
+                    <div>
+                      <p class="text-sm font-medium text-[#3a3b45]">Digest hằng ngày</p>
+                      <p class="text-xs text-[#858796]">Tổng hợp 1 email/ngày các cảnh báo mức cảnh báo (warning) của bệnh nhân</p>
+                    </div>
+                    <mat-slide-toggle formControlName="doctorDailyDigest" color="primary" />
+                  </div>
+                }
               </div>
             </div>
 

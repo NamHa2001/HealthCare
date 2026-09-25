@@ -45,12 +45,22 @@ public class DoctorAlertNotifier(
                 var doctor = await db.Users.FirstOrDefaultAsync(u => u.Id == link.DoctorUserId, ct);
                 if (doctor is null) continue;
 
+                // Mặc định bật nếu bác sĩ chưa từng cấu hình preferences (NotificationPreference.Create)
+                var prefs = await db.NotificationPreferences
+                    .FirstOrDefaultAsync(p => p.UserId == doctor.Id, ct);
+
                 foreach (var alert in group)
                 {
                     if (alert.Severity == AlertSeverity.Critical)
+                    {
+                        if (prefs is not null && !prefs.DoctorCriticalAlert) continue;
                         await SendCriticalNowAsync(doctor, patientName, alert, ct);
+                    }
                     else
+                    {
+                        if (prefs is not null && !prefs.DoctorDailyDigest) continue;
                         await QueueForDigestAsync(link.DoctorUserId, alert, ct);
+                    }
                 }
             }
         }

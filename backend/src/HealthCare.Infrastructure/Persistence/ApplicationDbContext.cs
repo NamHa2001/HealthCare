@@ -10,6 +10,7 @@ using HealthCare.Domain.Entities.Medications;
 using HealthCare.Domain.Entities.Notifications;
 using HealthCare.Domain.Entities.Sharing;
 using HealthCare.Domain.Entities.Vaccines;
+using HealthCare.Infrastructure.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -50,6 +51,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
     public DbSet<PatientDoctorLink> PatientDoctorLinks => Set<PatientDoctorLink>();
     public DbSet<DoctorAlertDelivery> DoctorAlertDeliveries => Set<DoctorAlertDelivery>();
+
+    // Không expose qua IApplicationDbContext — chi tiết vận hành nội bộ của JobSchedulerHostedService.
+    public DbSet<JobLock> JobLocks => Set<JobLock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

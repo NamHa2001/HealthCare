@@ -40,7 +40,7 @@ public class RegisterDoctorCommandHandler(
         var keys = new List<string>();
         foreach (var file in request.LicenseFiles)
         {
-            var key = await storage.UploadAsync(file.Content, file.FileName, file.ContentType, ct);
+            var key = await storage.UploadAsync(file.Content, file.FileName, file.ContentType, ct, StorageBucket.DoctorLicenses);
             keys.Add(key);
         }
         var keysJson = JsonSerializer.Serialize(keys);

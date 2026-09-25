@@ -6,44 +6,21 @@ export interface SyncQueueItem {
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   url: string;
   body: unknown;
-  authToken: string;
   createdAt: number;
   retryCount: number;
 }
 
-export interface CachedMeasurement {
-  id: string;
-  healthProfileId: string;
-  measuredAt: string;
-  weightKg: number | null;
-  bmi: number | null;
-  heartRateBpm: number | null;
-  spo2Percent: number | null;
-  bodyTemperature: number | null;
-  bloodGlucose: number | null;
-}
-
-export interface CachedBpLog {
-  id: string;
-  healthProfileId: string;
-  measuredAt: string;
-  systolic: number;
-  diastolic: number;
-  pulse: number | null;
-}
-
+// BUG-23: bảng cache đọc offline (measurements/bpLogs) từng khai báo sẵn nhưng không component/store
+// nào ghi hay đọc — dọn theo quyết định giữ nguyên "Offline First = chưa bắt đầu" (PROGRESS.md).
+// Chỉ giữ syncQueue — phần hàng đợi mutation offline đang thực sự hoạt động.
 @Injectable({ providedIn: 'root' })
 export class IndexedDbService extends Dexie {
   syncQueue!: Table<SyncQueueItem, number>;
-  measurements!: Table<CachedMeasurement, string>;
-  bpLogs!: Table<CachedBpLog, string>;
 
   constructor() {
     super('HealthPlusDB');
     this.version(1).stores({
       syncQueue: '++id, createdAt, method, url',
-      measurements: 'id, healthProfileId, measuredAt',
-      bpLogs: 'id, healthProfileId, measuredAt',
     });
   }
 

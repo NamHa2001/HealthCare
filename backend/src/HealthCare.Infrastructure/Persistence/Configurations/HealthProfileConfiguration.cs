@@ -61,5 +61,7 @@ public class HealthProfileConfiguration : IEntityTypeConfiguration<HealthProfile
             .WithOne(a => a.HealthProfile)
             .HasForeignKey(a => a.HealthProfileId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(p => p.DeletedAt == null);
     }
 }

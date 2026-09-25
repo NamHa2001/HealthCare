@@ -11,16 +11,19 @@ using HealthCare.Application.Auth.Queries.ExportUserData;
 using HealthCare.Application.Auth.Queries.GetCurrentUser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Text.Json;
 
 namespace HealthCare.API.Controllers;
 
 public class AuthController : BaseController
 {
+    [EnableRateLimiting("auth")]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command, CancellationToken ct)
         => Ok(await Sender.Send(command, ct));
 
+    [EnableRateLimiting("auth")]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand command, CancellationToken ct)
     {
@@ -28,6 +31,7 @@ public class AuthController : BaseController
         return Ok(await Sender.Send(command with { IpAddress = ip }, ct));
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken ct)
     {
@@ -39,14 +43,17 @@ public class AuthController : BaseController
     public async Task<IActionResult> Logout([FromBody] LogoutCommand command, CancellationToken ct)
         => Ok(await Sender.Send(command, ct));
 
+    [EnableRateLimiting("auth")]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command, CancellationToken ct)
         => Ok(await Sender.Send(command, ct));
 
+    [EnableRateLimiting("auth")]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command, CancellationToken ct)
         => Ok(await Sender.Send(command, ct));
 
+    [EnableRateLimiting("auth")]
     [HttpPost("verify-email")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailCommand command, CancellationToken ct)
         => Ok(await Sender.Send(command, ct));

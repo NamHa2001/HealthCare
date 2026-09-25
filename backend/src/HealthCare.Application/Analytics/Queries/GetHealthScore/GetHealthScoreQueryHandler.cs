@@ -58,7 +58,8 @@ public class GetHealthScoreQueryHandler(IApplicationDbContext db, ICurrentUser c
             var since = DateTime.UtcNow.AddDays(-30);
             var logs = await db.MedicationLogs
                 .AsNoTracking()
-                .Where(l => l.ScheduledAt >= since
+                .Where(l => l.MedicationSchedule.Medication.HealthProfileId == profile.Id
+                    && l.ScheduledAt >= since
                     && (l.Status == MedicationLogStatus.Taken || l.Status == MedicationLogStatus.Skipped))
                 .ToListAsync(ct);
 
