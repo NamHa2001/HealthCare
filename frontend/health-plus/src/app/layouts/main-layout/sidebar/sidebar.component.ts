@@ -35,13 +35,16 @@ export class SidebarComponent {
     { label: 'Gia đình', icon: 'group', route: '/family' },
   ];
 
-  /** Mục theo role: "Bệnh nhân của tôi" chỉ hiện với bác sĩ đã xác minh */
+  /** Mục theo role: "Bệnh nhân của tôi" chỉ hiện với bác sĩ đã xác minh, "Quản trị" chỉ hiện với admin */
   readonly navItems = computed<NavItem[]>(() => [
     ...this.baseItems,
     ...(this.authStore.isDoctor()
       ? [{ label: 'Bệnh nhân của tôi', icon: 'groups', route: '/doctor/patients' }]
       : []),
     { label: 'Đăng ký bác sĩ', icon: 'badge', route: '/doctor-registration' },
+    ...(this.authStore.isAdmin()
+      ? [{ label: 'Quản trị', icon: 'admin_panel_settings', route: '/admin' }]
+      : []),
   ]);
 
   onNavClick(): void {

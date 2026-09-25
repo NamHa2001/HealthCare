@@ -37,6 +37,12 @@ export class TopbarComponent {
     return `${user.firstName} ${user.lastName}`.trim();
   });
 
+  readonly roleLabel = computed(() => {
+    if (this.authStore.isAdmin()) return 'Quản trị viên';
+    if (this.authStore.isDoctor()) return 'Bác sĩ';
+    return 'Người dùng';
+  });
+
   toggleMenu(): void {
     this.menuToggled.emit();
   }
